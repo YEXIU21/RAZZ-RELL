@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-export const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
+// Create an axios instance with the base URL
 const api = axios.create({
   baseURL: apiUrl,
   headers: {
@@ -32,6 +33,4 @@ export const getStorageUrl = (path) => {
   return `${apiUrl}/storage/${path}`;
 };
 
-export function useApi() {
-  return { api, getStorageUrl };
-}
+export { api, apiUrl }; 
