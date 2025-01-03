@@ -7,7 +7,13 @@ RUN apk add --no-cache \
     postgresql-dev \
     libzip-dev \
     unzip \
-    git
+    git \
+    $PHPIZE_DEPS \
+    openssl-dev
+
+# Install MongoDB extension
+RUN pecl install mongodb && \
+    docker-php-ext-enable mongodb
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_pgsql zip
