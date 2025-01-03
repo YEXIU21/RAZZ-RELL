@@ -21,6 +21,9 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
+# Copy .env.example to .env
+RUN cp .env.example .env
+
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
@@ -29,6 +32,9 @@ RUN php artisan key:generate
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Configure Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 80
 EXPOSE 80
