@@ -282,32 +282,32 @@ const stats = [
 
 const galleryImages = [];
 
-const heroSlides = [
-  {
-    image: new URL('@/assets/Heroimage/herobck.png', import.meta.url).href,
-    title: 'Event Planning'
-  },
-  {
-    image: new URL('@/assets/Heroimage/vanda dbut1.jpg', import.meta.url).href,
-    title: 'Debut Events'
-  },
-  {
-    image: new URL('@/assets/Heroimage/vanda dbut.jpg', import.meta.url).href,
-    title: 'Debut Celebration'
-  },
-  {
-    image: new URL('@/assets/Heroimage/vanda margraf.jpg', import.meta.url).href,
-    title: 'Wedding Events'
-  }
-];
+const heroSlides = ref([]);
+
+const loadHeroImages = async () => {
+  const heroImageContext = import.meta.glob('@/assets/Heroimage/*.(png|jpg|jpeg)', { eager: true });
+  
+  heroSlides.value = Object.entries(heroImageContext).map(([path, module]) => {
+    const fileName = path.split('/').pop();
+    const title = fileName.split('.')[0]
+      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+      .replace(/-/g, ' ') // Replace hyphens with spaces
+      .trim();
+    
+    return {
+      image: module.default,
+      title: title
+    };
+  });
+};
 
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % heroSlides.length;
+  currentSlide.value = (currentSlide.value + 1) % heroSlides.value.length;
 };
 
 const prevSlide = () => {
   currentSlide.value = currentSlide.value === 0 
-    ? heroSlides.length - 1 
+    ? heroSlides.value.length - 1 
     : currentSlide.value - 1;
 };
 
@@ -383,6 +383,7 @@ const fetchBookings = async () => {
 };
 
 onMounted(async () => {
+  await loadHeroImages();
   await fetchportfolios();
   await fetchUsers();
   await fetchBookings();
@@ -393,7 +394,7 @@ onMounted(async () => {
 
   // Start slideshow with 3-second interval
   slideInterval = setInterval(() => {
-    currentSlide.value = (currentSlide.value + 1) % heroSlides.length;
+    currentSlide.value = (currentSlide.value + 1) % heroSlides.value.length;
   }, 3000);
 
   // Start testimonial rotation
