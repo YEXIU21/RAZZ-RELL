@@ -13,6 +13,7 @@ php artisan view:clear
 
 # Remove existing storage link and directory
 rm -rf public/storage
+rm -rf storage/app/public
 
 # Create storage directories with proper permissions
 mkdir -p storage/app/public/packages
@@ -21,29 +22,42 @@ mkdir -p storage/app/public/avatars
 mkdir -p storage/framework/{sessions,views,cache}
 mkdir -p bootstrap/cache
 
-# Set permissions recursively
-find storage -type d -exec chmod 775 {} \;
-find storage -type f -exec chmod 664 {} \;
-find bootstrap/cache -type d -exec chmod 775 {} \;
-find bootstrap/cache -type f -exec chmod 664 {} \;
+# Set permissions recursively for storage
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
+chown -R www-data:www-data storage
+chown -R www-data:www-data bootstrap/cache
 
-# Create storage link
+# Create storage link using multiple methods to ensure success
 php artisan storage:link
 
-# Ensure storage link exists and is correct
+# Manual symlink creation as backup
 if [ ! -L "public/storage" ] || [ ! -d "storage/app/public" ]; then
-    echo "Storage link not created properly, trying alternative method..."
+    echo "Artisan storage:link failed, trying manual symlink..."
     rm -rf public/storage
+    ln -sf ../storage/app/public public/storage
+fi
+
+# Double-check symlink
+if [ ! -L "public/storage" ]; then
+    echo "Manual symlink failed, trying final method..."
     cd public
     ln -sf ../storage/app/public storage
     cd ..
 fi
 
-# Verify storage link
+# Verify storage setup
+echo "Verifying storage setup..."
 if [ -L "public/storage" ] && [ -d "storage/app/public" ]; then
-    echo "Storage link verified successfully"
+    echo "✓ Storage link created successfully"
+    ls -la public/storage
+    echo "✓ Storage directories:"
+    ls -la storage/app/public
 else
-    echo "Warning: Storage link verification failed"
+    echo "⚠ Warning: Storage link verification failed"
+    echo "Current storage status:"
+    ls -la public/
+    ls -la storage/app/
 fi
 
 # Clear and cache config for production
