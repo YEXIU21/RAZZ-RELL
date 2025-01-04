@@ -33,7 +33,7 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL', 'https://razz-rell.onrender.com').'/api/storage',
             'visibility' => 'public',
             'throw' => false,
             'permissions' => [
@@ -51,7 +51,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL', 'https://razz-rell.onrender.com').'/api/storage',
             'visibility' => 'public',
             'throw' => false,
             'permissions' => [

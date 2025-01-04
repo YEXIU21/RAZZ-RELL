@@ -17,6 +17,7 @@ rm -rf public/storage
 # Create storage directories with proper permissions
 mkdir -p storage/app/public/packages
 mkdir -p storage/app/public/package_albums
+mkdir -p storage/app/public/avatars
 mkdir -p storage/framework/{sessions,views,cache}
 mkdir -p bootstrap/cache
 
@@ -30,11 +31,19 @@ find bootstrap/cache -type f -exec chmod 664 {} \;
 php artisan storage:link
 
 # Ensure storage link exists and is correct
-if [ ! -L "public/storage" ]; then
+if [ ! -L "public/storage" ] || [ ! -d "storage/app/public" ]; then
     echo "Storage link not created properly, trying alternative method..."
+    rm -rf public/storage
     cd public
     ln -sf ../storage/app/public storage
     cd ..
+fi
+
+# Verify storage link
+if [ -L "public/storage" ] && [ -d "storage/app/public" ]; then
+    echo "Storage link verified successfully"
+else
+    echo "Warning: Storage link verification failed"
 fi
 
 # Clear and cache config for production
