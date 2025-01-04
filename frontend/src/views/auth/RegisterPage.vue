@@ -4,7 +4,7 @@
       <div class="auth-card">
         <div class="auth-header">
           <router-link to="/">
-            <img src="@/assets/logo2.png" alt="Razz Rell Events" class="auth-logo" />
+            <img :src="currentLogo" alt="Razz Rell Events" class="auth-logo" />
           </router-link>
           <h1>Create Account</h1>
           <p>Join us to start planning your events</p>
@@ -181,11 +181,12 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import { useValidation } from '@/composables/useValidation';
 import { useNotifications } from '@/composables/useNotifications';
+import { useTheme } from '@/composables/useTheme';
 import Swal from 'sweetalert2';
 // import { useLoading } from '@/composables/useLoading';
 
@@ -344,6 +345,11 @@ const handleSubmit = async () => {
     });
   }
 };
+
+const { isDarkMode } = useTheme();
+const currentLogo = computed(() => {
+  return isDarkMode() ? new URL('@/assets/logo2.png', import.meta.url).href : new URL('@/assets/logo1.png', import.meta.url).href;
+});
 </script>
 
 <style scoped>

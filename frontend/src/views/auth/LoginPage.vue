@@ -4,7 +4,7 @@
       <div class="auth-card">
         <div class="auth-header">
           <router-link to="/">
-            <img src="@/assets/logo2.png" alt="Razz Rell Events" class="auth-logo" />
+            <img :src="currentLogo" alt="Razz Rell Events" class="auth-logo" />
           </router-link>
           <h1>Welcome Back</h1>
           <p>Sign in to your account to continue</p>
@@ -66,15 +66,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import { useValidation } from '@/composables/useValidation';
 import { useNotifications } from '@/composables/useNotifications';
+import { useTheme } from '@/composables/useTheme';
 
 const router = useRouter();
 const { login } = useAuth();
 const { success, error: showError } = useNotifications();
+const { isDarkMode } = useTheme();
+
+const currentLogo = computed(() => {
+  return isDarkMode() ? new URL('@/assets/logo2.png', import.meta.url).href : new URL('@/assets/logo1.png', import.meta.url).href;
+});
 
 const showPassword = ref(false);
 
