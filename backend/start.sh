@@ -2,6 +2,17 @@
 
 cd /var/www/html
 
+# Create necessary directories
+mkdir -p storage/app/public
+mkdir -p storage/framework/cache
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p storage/logs
+
+# Set proper permissions
+chmod -R 775 storage
+chown -R www-data:www-data storage
+
 # Test database connection
 echo "Testing database connection..."
 php artisan db:monitor
@@ -10,7 +21,7 @@ php artisan db:monitor
 php artisan key:generate --force
 
 # Run database migrations and seeding
-php artisan migrate --force
+php artisan migrate:fresh --force
 php artisan db:seed --force
 
 # Remove existing storage link if it exists

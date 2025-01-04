@@ -30,6 +30,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Authentication Routes
+Route::post('/login', [UserController::class, 'login']);
+Route::post('/register', [UserController::class, 'register']);
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+
 //Booking
 Route::post('/add-booking', [BookingController::class, 'addBooking']);
 Route::get('/get-all-bookings', [BookingController::class, 'index']);
