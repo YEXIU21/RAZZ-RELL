@@ -72,6 +72,7 @@ import { useAuth } from '@/composables/useAuth';
 import { useValidation } from '@/composables/useValidation';
 import { useNotifications } from '@/composables/useNotifications';
 import { useTheme } from '@/composables/useTheme';
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 const { login } = useAuth();
@@ -114,12 +115,32 @@ const handleSubmit = async () => {
       remember: values.value.rememberMe,
     });
 
-
-
+    if (!result) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Account Not Found',
+        text: 'This account does not exist. Would you like to register?',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Register Now',
+        cancelButtonText: 'Try Again'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/register');
+        }
+      });
+    }
   } catch (err) {
-    showError('Invalid email or password. Please try again.');
+    const errorMessage = err.response?.data?.message || 'Invalid email or password. Please try again.';
+    await Swal.fire({
+      icon: 'error',
+      title: 'Login Failed',
+      text: errorMessage,
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'Okay'
+    });
   }
-  
 };
 </script>
 

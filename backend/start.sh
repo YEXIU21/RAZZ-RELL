@@ -3,18 +3,17 @@
 cd /var/www/html
 
 # Create necessary directories with proper permissions
-mkdir -p storage/app/public/images/DefaultProfile
-mkdir -p storage/app/public/packages
-mkdir -p storage/app/public/avatars
+mkdir -p storage/app/images/DefaultProfile
+mkdir -p storage/app/packages
+mkdir -p storage/app/avatars
 mkdir -p storage/framework/cache
 mkdir -p storage/framework/sessions
 mkdir -p storage/framework/views
 mkdir -p storage/logs
-mkdir -p public/storage
 
 # Set proper permissions
-chmod -R 775 storage public bootstrap/cache
-chown -R www-data:www-data storage public bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
 
 # Generate application key
 php artisan key:generate --force
@@ -28,10 +27,6 @@ php artisan view:clear
 # Run database migrations and seeding
 php artisan migrate:fresh --force
 php artisan db:seed --force
-
-# Remove existing storage link and recreate it
-rm -rf public/storage
-php artisan storage:link --force
 
 # Cache configuration and routes
 php artisan config:cache

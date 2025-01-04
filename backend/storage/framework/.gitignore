@@ -1,1 +1,14 @@
- 
+*
+!.gitignore
+!cache/
+!sessions/
+!views/
+!testing/
+cache/*
+sessions/*
+views/*
+testing/*
+!cache/.gitkeep
+!sessions/.gitkeep
+!views/.gitkeep
+!testing/.gitkeep 

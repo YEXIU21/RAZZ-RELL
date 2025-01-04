@@ -84,12 +84,21 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-
         $credentials = $request->only('email', 'password');
+        
+        // Check if user exists
+        $user = User::where('email', $credentials['email'])->first();
+        if (!$user) {
+            return response()->json([
+                'message' => 'This account does not exist. Please register first.',
+                'status' => 401
+            ], 401);
+        }
 
         if (!auth()->attempt($credentials)) {
             return response()->json([
-                'message' => 'Invalid login credentials'
+                'message' => 'Invalid password. Please try again.',
+                'status' => 401
             ], 401);
         }
 
