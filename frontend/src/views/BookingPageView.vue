@@ -1316,11 +1316,12 @@ const minDate = computed(() => {
 });
 
 const getPackageImageUrl = computed(() => {
-  if (!selectedPackage.value?.image) {
-    return '/src/assets/images/default-package.jpg'
+  if (!selectedPackage.value || !selectedPackage.value.image) {
+    return '/src/assets/images/default-package.jpg';
   }
-  return `${import.meta.env.VITE_STORAGE_URL}/api/storage/${selectedPackage.value.image}`
-})
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
+  return storageUrl + '/api/storage/' + selectedPackage.value.image;
+});
 
 // Update the packPriceAdjustment computed property
 const packPriceAdjustment = computed(() => {
