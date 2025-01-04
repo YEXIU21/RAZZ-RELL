@@ -385,7 +385,7 @@ const handleSubmit = async () => {
     mainImageFormData.append('file', formData.image);
     
     const mainImageResponse = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
+      `${import.meta.env.VITE_API_URL}/storage/portfolios`,
       mainImageFormData,
       {
         headers: {
@@ -407,7 +407,7 @@ const handleSubmit = async () => {
         albumImageFormData.append('file', image);
         
         const albumImageResponse = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
+          `${import.meta.env.VITE_API_URL}/storage/portfolios`,
           albumImageFormData,
           {
             headers: {
