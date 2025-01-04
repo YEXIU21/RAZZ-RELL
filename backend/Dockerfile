@@ -12,7 +12,11 @@ RUN apk add --no-cache \
     postgresql-libs \
     oniguruma-dev \
     libxml2-dev \
-    postgresql-client
+    postgresql-client \
+    supervisor
+
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor
 
 # Install PHP extensions
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
@@ -34,19 +38,11 @@ RUN composer install --no-interaction --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Create startup script
-RUN echo '#!/bin/sh' > /start.sh && \
-    echo 'cd /var/www/html' >> /start.sh && \
-    echo 'php artisan key:generate --force' >> /start.sh && \
-    echo 'php artisan migrate --force' >> /start.sh && \
-    echo 'php artisan db:seed --force' >> /start.sh && \
-    echo 'php artisan config:cache' >> /start.sh && \
-    echo 'php artisan route:cache' >> /start.sh && \
-    echo 'php artisan serve --host=0.0.0.0 --port=80' >> /start.sh && \
-    chmod +x /start.sh
+# Make startup script executable
+RUN chmod +x start.sh
 
 # Expose port 80
 EXPOSE 80
 
 # Start services
-CMD ["/start.sh"] 
+CMD ["./start.sh"] 
