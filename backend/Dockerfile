@@ -13,7 +13,8 @@ RUN apk add --no-cache \
     postgresql-libs \
     oniguruma-dev \
     libxml2-dev \
-    postgresql-client
+    postgresql-client \
+    supervisor
 
 # Install PHP extensions
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
@@ -31,20 +32,24 @@ COPY . .
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
-# Create startup script
-RUN echo '#!/bin/sh' > /start.sh && \
-    echo 'php artisan key:generate --force' >> /start.sh && \
-    echo 'php artisan serve --host=0.0.0.0 --port=80' >> /start.sh && \
-    chmod +x /start.sh
+# Configure PHP-FPM
+RUN echo "clear_env = no" >> /usr/local/etc/php-fpm.d/www.conf
+
+# Configure supervisor
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Configure Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Create necessary directories
+RUN mkdir -p /run/nginx /run/php
+
 # Expose port 80
 EXPOSE 80
 
-# Start using the startup script
-CMD ["/start.sh"] 
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"] 
