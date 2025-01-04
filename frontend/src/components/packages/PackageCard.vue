@@ -2,7 +2,7 @@
   <div class="package-card">
     <div class="package-image">
       <img 
-        :src="package.image ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${package.image}` : '/src/assets/images/default-package.jpg'" 
+        :src="packageImageUrl" 
         :alt="package.name"
       >
       <div class="package-badge" :style="eventTypeStyle">
@@ -67,6 +67,13 @@ export default {
       return num.toLocaleString('en-PH');
     };
 
+    const packageImageUrl = computed(() => {
+      if (!props.package.image) {
+        return '/src/assets/images/default-package.jpg';
+      }
+      return `${import.meta.env.VITE_STORAGE_URL}/api/storage/${props.package.image}`;
+    });
+
     const viewDetails = () => {
       router.push(`/packages/${props.package._id}`);
     };
@@ -87,7 +94,8 @@ export default {
       formatNumber,
       viewDetails,
       bookNow,
-      eventTypeStyle
+      eventTypeStyle,
+      packageImageUrl
     };
   },
   computed: {
