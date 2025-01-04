@@ -44,9 +44,6 @@ COPY . .
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
-# Copy default avatar
-RUN cp public/images/DefaultProfile/defaultAvatar.png storage/app/public/images/DefaultProfile/
-
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
@@ -60,4 +57,4 @@ RUN php artisan storage:link
 EXPOSE 80
 
 # Start services
-CMD ["./start.sh"] 
+CMD ["./start.sh"]

@@ -16,9 +16,6 @@ mkdir -p public/storage
 chmod -R 775 storage public
 chown -R www-data:www-data storage public bootstrap/cache
 
-# Copy default avatar
-cp -f public/images/DefaultProfile/defaultAvatar.png storage/app/public/images/DefaultProfile/
-
 # Test database connection
 echo "Testing database connection..."
 php artisan db:monitor
