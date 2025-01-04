@@ -247,7 +247,10 @@ const handleAlbumImagesUpload = async (event) => {
   for (const file of validFiles) {
     const reader = new FileReader();
     reader.onload = (e) => {
-      albumPreviews.value.push(e.target.result);
+      albumPreviews.value.push({
+        preview: e.target.result,
+        file: file
+      });
     };
     reader.readAsDataURL(file);
   }
@@ -260,7 +263,7 @@ const removeAlbumImage = async (index) => {
     const imagePath = formData.albumImages[index];
     
     // Remove from storage if it's a stored image
-    if (imagePath && imagePath.startsWith('portfolios/')) {
+    if (typeof imagePath === 'string' && imagePath.startsWith('portfolios/')) {
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/api/storage/${imagePath}`,
         {
@@ -389,7 +392,7 @@ const handleSubmit = async () => {
     mainImageFormData.append('file', formData.image);
     
     const mainImageResponse = await axios.post(
-      `${import.meta.env.VITE_API_URL}/storage/portfolios`,
+      `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
       mainImageFormData,
       {
         headers: {
@@ -415,7 +418,7 @@ const handleSubmit = async () => {
         
         try {
           const albumImageResponse = await axios.post(
-            `${import.meta.env.VITE_API_URL}/storage/portfolios`,
+            `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
             albumImageFormData,
             {
               headers: {
