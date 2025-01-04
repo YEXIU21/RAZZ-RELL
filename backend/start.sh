@@ -13,12 +13,8 @@ mkdir -p storage/logs
 mkdir -p public/storage
 
 # Set proper permissions
-chmod -R 775 storage public
+chmod -R 775 storage public bootstrap/cache
 chown -R www-data:www-data storage public bootstrap/cache
-
-# Test database connection
-echo "Testing database connection..."
-php artisan db:monitor
 
 # Generate application key
 php artisan key:generate --force
@@ -35,15 +31,11 @@ php artisan db:seed --force
 
 # Remove existing storage link and recreate it
 rm -rf public/storage
-php artisan storage:link
+php -r "symlink('/var/www/html/storage/app/public', '/var/www/html/public/storage');"
 
 # Cache configuration and routes
 php artisan config:cache
 php artisan route:cache
-
-# Ensure storage directory is writable
-chmod -R 775 storage
-chown -R www-data:www-data storage
 
 # Start the server
 php artisan serve --host=0.0.0.0 --port=80 

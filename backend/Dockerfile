@@ -50,9 +50,6 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
     && chmod -R 775 /var/log/supervisor \
     && chmod +x start.sh
 
-# Create storage link
-RUN php artisan storage:link
-
 # Expose port 80
 EXPOSE 80
 
