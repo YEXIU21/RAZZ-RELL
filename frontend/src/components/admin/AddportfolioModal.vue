@@ -80,7 +80,7 @@
             </div>
             <div v-else class="album-grid">
               <div v-for="(preview, index) in albumPreviews" :key="index" class="album-item">
-                <img :src="preview" alt="Album preview" />
+                <img :src="preview.preview" alt="Album preview" class="album-preview-image" />
                 <button type="button" @click="removeAlbumImage(index)" class="remove-image-btn">
                   <i class="fas fa-times"></i>
                 </button>
@@ -175,7 +175,7 @@ const getPreviewImageUrl = computed(() => {
     return imagePreview.value;
   }
   const storageUrl = import.meta.env.VITE_API_URL || '';
-  return `${storageUrl}/storage/${imagePreview.value}`;
+  return `${storageUrl}/api/storage/${imagePreview.value}`;
 });
 
 const handleImageUpload = (event) => {
@@ -247,10 +247,7 @@ const handleAlbumImagesUpload = async (event) => {
   for (const file of validFiles) {
     const reader = new FileReader();
     reader.onload = (e) => {
-      albumPreviews.value.push({
-        file,
-        preview: e.target.result
-      });
+      albumPreviews.value.push(e.target.result);
     };
     reader.readAsDataURL(file);
   }

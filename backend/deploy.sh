@@ -13,6 +13,9 @@ php artisan view:clear
 
 # Storage setup
 rm -rf public/storage
+mkdir -p storage/app/public
+mkdir -p storage/framework/{sessions,views,cache}
+chmod -R 775 storage
 php artisan storage:link
 
 # Optimize
