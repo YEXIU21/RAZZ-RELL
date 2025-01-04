@@ -37,7 +37,7 @@
           <div v-if="selectedPackage" class="package-card">
             <div class="package-image">
               <img
-                :src="selectedPackage.image ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${selectedPackage.image}` : '/src/assets/images/default-package.jpg'"
+                :src="selectedPackage.image ? import.meta.env.VITE_STORAGE_URL + '/api/storage/' + selectedPackage.image : '/src/assets/images/default-package.jpg'"
                 :alt="selectedPackage.name"
               />
               <div class="package-badge">Selected Package</div>
