@@ -51,7 +51,7 @@
               <p class="upload-hint">Supports: JPG, PNG, WebP (Max 5MB)</p>
             </div>
             <div v-else class="preview-container">
-              <img :src="imagePreview ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${imagePreview}` : '/src/assets/images/default-portfolio.jpg'" 
+              <img :src="getPreviewImageUrl" 
                 alt="Preview" 
                 class="image-preview" />
               <div class="preview-overlay">
@@ -141,7 +141,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useAuth } from '@/composables/useAuth';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -166,6 +166,14 @@ const showCropper = ref(false);
 const cropperImage = ref(null);
 const cropper = ref(null);
 const hasAppliedImage = ref(false);
+
+const getPreviewImageUrl = computed(() => {
+  if (!imagePreview.value) {
+    return '/src/assets/images/default-portfolio.jpg';
+  }
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
+  return storageUrl + '/api/storage/' + imagePreview.value;
+});
 
 const handleImageUpload = (event) => {
   const file = event.target.files?.[0];
