@@ -1,6 +1,7 @@
 export const config = {
-  apiUrl: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
-  storageUrl: `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/storage`,
+  apiUrl: import.meta.env.VITE_API_URL || 'https://razz-rell.onrender.com',
+  storageUrl: `${import.meta.env.VITE_API_URL || 'https://razz-rell.onrender.com'}/storage`,
+  socketUrl: import.meta.env.VITE_SOCKET_URL || 'https://razz-rell.onrender.com',
 };
 
 export const getStorageUrl = (path) => {
