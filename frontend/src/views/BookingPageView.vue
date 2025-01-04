@@ -37,7 +37,7 @@
           <div v-if="selectedPackage" class="package-card">
             <div class="package-image">
               <img
-                :src="selectedPackage.image ? import.meta.env.VITE_STORAGE_URL + '/api/storage/' + selectedPackage.image : '/src/assets/images/default-package.jpg'"
+                :src="getPackageImageUrl"
                 :alt="selectedPackage.name"
               />
               <div class="package-badge">Selected Package</div>
@@ -1314,6 +1314,13 @@ const minDate = computed(() => {
   today.setDate(today.getDate() + 7); // Minimum 7 days from today
   return today.toISOString().split("T")[0];
 });
+
+const getPackageImageUrl = computed(() => {
+  if (!selectedPackage.value?.image) {
+    return '/src/assets/images/default-package.jpg'
+  }
+  return `${import.meta.env.VITE_STORAGE_URL}/api/storage/${selectedPackage.value.image}`
+})
 
 // Update the packPriceAdjustment computed property
 const packPriceAdjustment = computed(() => {
