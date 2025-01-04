@@ -10,7 +10,7 @@ class StorageController extends Controller
 {
     public function getFile($path)
     {
-        $fullPath = 'app/' . $path;
+        $fullPath = $path;
         
         if (!Storage::exists($fullPath)) {
             return response()->json(['message' => 'File not found'], 404);
@@ -25,12 +25,23 @@ class StorageController extends Controller
             return response()->json(['message' => 'No file uploaded'], 400);
         }
 
-        $file = $request->file('file');
-        $path = $file->store('app/' . $folder, 'local');
+        try {
+            $file = $request->file('file');
+            $path = $file->store($folder, 'local');
 
-        return response()->json([
-            'message' => 'File uploaded successfully',
-            'path' => $path
-        ]);
+            if (!$path) {
+                throw new \Exception('Failed to store file');
+            }
+
+            return response()->json([
+                'message' => 'File uploaded successfully',
+                'path' => $path,
+                'url' => Storage::url($path)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to upload file: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

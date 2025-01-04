@@ -1,30 +1,21 @@
 #!/bin/bash
 
+echo "Running deployment script..."
+
 # Install dependencies
-composer install --no-interaction --prefer-dist --optimize-autoloader
+composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 # Clear and cache config
 php artisan config:clear
-php artisan config:cache
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
 
-# Run migrations
-php artisan migrate --force
-
-# Create storage link
+# Storage setup
+rm -rf public/storage
 php artisan storage:link
 
-# Set storage permissions
-chmod -R 775 storage
-chmod -R 775 bootstrap/cache
+# Optimize
+php artisan optimize
 
-# Create storage directories if they don't exist
-mkdir -p storage/app/public/avatars
-mkdir -p storage/app/public/packages
-mkdir -p storage/app/public/portfolios
-mkdir -p storage/app/public/portfolio_albums
-
-# Set proper permissions for storage directories
-chmod -R 775 storage/app/public/avatars
-chmod -R 775 storage/app/public/packages
-chmod -R 775 storage/app/public/portfolios
-chmod -R 775 storage/app/public/portfolio_albums
+echo "Deployment completed!"
