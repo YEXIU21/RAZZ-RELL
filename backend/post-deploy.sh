@@ -6,6 +6,9 @@ php artisan key:generate --force
 # Run database migrations
 php artisan migrate --force
 
+# Seed the database
+php artisan db:seed --force
+
 # Create storage link
 php artisan storage:link
 
