@@ -1,0 +1,11 @@
+*
+!.gitignore
+!images/
+!packages/
+!avatars/
+images/*
+packages/*
+avatars/*
+!images/.gitkeep
+!packages/.gitkeep
+!avatars/.gitkeep 
