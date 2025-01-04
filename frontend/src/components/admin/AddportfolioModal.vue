@@ -326,43 +326,34 @@ const cancelCrop = () => {
 };
 
 const applyCrop = () => {
-  const canvas = cropper.value.getCroppedCanvas();
-  
-  canvas.toBlob(async (blob) => {
-    const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
-    formData.image = file;
-    hasAppliedImage.value = true;
-
-    // Upload the cropped image
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('file', file);
-      
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
-        formDataToSend,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          }
-        }
-      );
-
-      if (response.data && response.data.path) {
-        imagePreview.value = response.data.path;
+  try {
+    const canvas = cropper.value.getCroppedCanvas({
+      width: 1600,
+      height: 900,
+      imageSmoothingQuality: 'high',
+      fillColor: '#fff'
+    });
+    
+    imagePreview.value = canvas.toDataURL('image/jpeg', 0.9);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        formData.image = new File([blob], 'portfolio-image.jpg', { 
+          type: 'image/jpeg',
+          lastModified: new Date().getTime()
+        });
+        hasAppliedImage.value = true;
+        showCropper.value = false;
       }
-    } catch (error) {
-      console.error('Error uploading cropped image:', error);
-      Swal.fire({
-        title: 'Error',
-        text: 'Failed to upload cropped image',
-        icon: 'error'
-      });
-    }
-  }, 'image/jpeg');
-
-  showCropper.value = false;
+    }, 'image/jpeg', 0.9);
+  } catch (error) {
+    console.error('Error applying crop:', error);
+    Swal.fire({
+      title: 'Error',
+      text: 'Failed to crop image. Please try again.',
+      icon: 'error'
+    });
+  }
 };
 
 const handleSubmit = async () => {
@@ -377,30 +368,78 @@ const handleSubmit = async () => {
     return;
   }
 
+  if (!hasAppliedImage.value) {
+    Swal.fire({
+      title: 'Error',
+      text: 'Please crop and apply the image before submitting',
+      icon: 'error',
+    });
+    return;
+  }
+
   try {
     isSubmitting.value = true;
     
-    const formDataToSend = new FormData();
-    formDataToSend.append('title', formData.title);
-    formDataToSend.append('description', formData.description);
-    formDataToSend.append('event_type', formData.eventType === 'Other' ? formData.customEventType : formData.eventType);
-    formDataToSend.append('main_image_url', formData.image);
-
-    // Add album images if any
-    if (formData.albumImages && formData.albumImages.length > 0) {
-      formData.albumImages.forEach((image, index) => {
-        formDataToSend.append(`album_images[${index}]`, image);
-      });
-    }
-
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/add-portfolio`,
-      formDataToSend,
+    // First upload the main image
+    const mainImageFormData = new FormData();
+    mainImageFormData.append('file', formData.image);
+    
+    const mainImageResponse = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
+      mainImageFormData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
+        }
+      }
+    );
+
+    if (!mainImageResponse.data || !mainImageResponse.data.path) {
+      throw new Error('Failed to upload main image');
+    }
+
+    // Then upload album images if any
+    const albumImagePaths = [];
+    if (formData.albumImages && formData.albumImages.length > 0) {
+      for (const image of formData.albumImages) {
+        const albumImageFormData = new FormData();
+        albumImageFormData.append('file', image);
+        
+        const albumImageResponse = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
+          albumImageFormData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+          }
+        );
+        
+        if (albumImageResponse.data && albumImageResponse.data.path) {
+          albumImagePaths.push(albumImageResponse.data.path);
+        }
+      }
+    }
+
+    // Finally submit the portfolio data
+    const portfolioData = {
+      title: formData.title,
+      description: formData.description,
+      event_type: formData.eventType === 'Other' ? formData.customEventType : formData.eventType,
+      main_image_url: mainImageResponse.data.path,
+      images_url: albumImagePaths
+    };
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/add-portfolio`,
+      portfolioData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
       }
     );
 
@@ -408,18 +447,17 @@ const handleSubmit = async () => {
       Swal.fire({
         title: 'Success',
         text: 'Portfolio added successfully',
-        icon: 'success',
-      }).then(() => {
-        emit('success');
-        emit('close');
+        icon: 'success'
       });
+      emit('success');
+      emit('close');
     }
   } catch (error) {
-    console.error('Error adding portfolio:', error);
+    console.error('Error submitting portfolio:', error);
     Swal.fire({
       title: 'Error',
-      text: error.response?.data?.message || 'Failed to add portfolio',
-      icon: 'error',
+      text: error.message || 'Failed to add portfolio. Please try again.',
+      icon: 'error'
     });
   } finally {
     isSubmitting.value = false;
