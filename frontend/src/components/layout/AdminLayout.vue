@@ -2,7 +2,7 @@
     <div class="admin-layout">
       <nav class="admin-navbar">
         <div class="navbar-brand">
-          <img src="@/assets/logo2.png" alt="Razz Rell Events" />
+          <img :src="isDarkMode() ? new URL('@/assets/logo2.png', import.meta.url).href : new URL('@/assets/logo1.png', import.meta.url).href" alt="Razz Rell Events" />
         </div>
       </nav>
       <div class="admin-container">
@@ -17,6 +17,9 @@
   <script setup>
   import AdminSidebar from '@/components/admin/AdminSidebar.vue';
   import { computed } from 'vue';
+  import { useTheme } from '@/composables/useTheme';
+  
+  const { isDarkMode } = useTheme();
   
   const userAvatar = computed(() => {
     const user = JSON.parse(localStorage.getItem('user_info'));
