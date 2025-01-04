@@ -1,7 +1,9 @@
 `<template>
   <div class="christening-package">
     <div class="package-header">
-      <img :src="package.image" :alt="package.name" class="package-image">
+      <img :src="package.image ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${package.image}` : '/src/assets/images/default-package.jpg'" 
+           :alt="package.name" 
+           class="package-image">
       <div class="package-overlay">
         <h2>{{ package.name }}</h2>
         <div class="price">₱{{ formatNumber(package.price) }}</div>

@@ -115,43 +115,68 @@ class UserController extends Controller
 
     public function changeProfile(Request $request)
     {
-        $user = User::find($request->id);
+        try {
+            $user = User::find($request->id);
 
-        $validator = validator($request->all(), [
-            "avatar" => "image|mimes:jpeg,png,jpg,webp|max:5120",
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-                'status' => 422
-            ], 422);
-        }
-
-        $avatar = $user->avatar;
-        if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
-            if ($avatar && Storage::disk('public')->exists($avatar)) {
-                Storage::disk('public')->delete($avatar);
+            if (!$user) {
+                return response()->json([
+                    'message' => 'User not found',
+                    'status' => 404
+                ], 404);
             }
 
-            $file = $request->file('avatar');
-            $extension = $file->getClientOriginalExtension();
-            $filename = Str::random(32) . '.' . $extension;
-            Storage::disk('public')->putFileAs('avatars', $file, $filename);
-            $avatar = 'avatars/' . $filename;
+            $validator = validator($request->all(), [
+                "avatar" => "required|image|mimes:jpeg,png,jpg,webp|max:5120",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors(),
+                    'status' => 422
+                ], 422);
+            }
+
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $extension = $file->getClientOriginalExtension();
+                $filename = Str::random(32) . '.' . $extension;
+                
+                // Store using the new storage approach
+                $path = $file->storeAs('avatars', $filename, 'local');
+                
+                if (!$path) {
+                    throw new \Exception('Failed to store avatar');
+                }
+
+                // Delete old avatar if exists and it's not the default
+                if ($user->avatar && $user->avatar !== 'images/DefaultProfile/defaultAvatar.png' && Storage::exists($user->avatar)) {
+                    Storage::delete($user->avatar);
+                }
+
+                $user->update([
+                    'avatar' => $path
+                ]);
+
+                return response()->json([
+                    'message' => 'Avatar successfully updated!',
+                    'status' => 200,
+                    'data' => $user,
+                    'avatar_url' => env('VITE_STORAGE_URL', env('APP_URL')) . '/api/storage/' . $path
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => 'No avatar file provided',
+                'status' => 400
+            ], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update avatar: ' . $e->getMessage(),
+                'status' => 500
+            ], 500);
         }
-
-        $user->update([
-            'avatar' => $avatar,
-        ]);
-
-        return response()->json([
-            'message' => 'Avatar successfully updated!',
-            'status' => 200,
-            "data" => $user
-        ], 200);
     }
 
     public function contactUs(Request $request)

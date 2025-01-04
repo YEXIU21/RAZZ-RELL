@@ -37,7 +37,7 @@
           <div v-if="selectedPackage" class="package-card">
             <div class="package-image">
               <img
-                :src="selectedPackage.image || '/images/default-package.jpg'"
+                :src="selectedPackage.image ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${selectedPackage.image}` : '/src/assets/images/default-package.jpg'"
                 :alt="selectedPackage.name"
               />
               <div class="package-badge">Selected Package</div>
@@ -1441,7 +1441,7 @@ const getBookingById = async () => {
       packs: response.data.packs,
       additional_price_percentage: response.data.additional_price_percentage,
       image: response.data.package_image
-        ? `${import.meta.env.VITE_API_URL}/storage/${
+        ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${
             response.data.package_image
           }`
         : null,

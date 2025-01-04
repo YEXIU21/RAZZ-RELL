@@ -61,7 +61,11 @@
           <label for="coverImage">Cover Image </label>
           <div class="upload-container" :class="{ 'has-image': imagePreview }">
             <div class="preview-container">
-              <img :src="image(formData.image)" alt="Preview" class="image-preview" />
+              <img 
+                :src="formData.image ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${formData.image}` : '/src/assets/images/default-portfolio.jpg'" 
+                alt="Preview" 
+                class="image-preview" 
+              />
             </div>
           </div>
         </div>
@@ -77,7 +81,10 @@
             </div>
             <div v-else class="album-grid">
               <div v-for="(preview, index) in images" :key="index" class="album-item">
-                <img :src="image(preview)" :alt="`Album image ${index + 1}`" />
+                <img 
+                  :src="preview ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${preview}` : '/src/assets/images/default-portfolio.jpg'"
+                  :alt="`Album image ${index + 1}`" 
+                />
               </div>
             </div>
           </div>
@@ -200,13 +207,10 @@ const rotateRight = () => {
   cropper.value.rotate(90);
 };
 
-
-
-const image = (image_url) => {
-  if (!image_url) return '';
-  if (image_url.startsWith('http')) return image_url;
-  return `${import.meta.env.VITE_API_URL}/storage/${image_url}`;
-}
+const image = (path) => {
+  if (!path) return '/src/assets/images/default-portfolio.jpg';
+  return `${import.meta.env.VITE_STORAGE_URL}/api/storage/${path}`;
+};
 
 const zoomIn = () => {
   cropper.value.zoom(0.1);

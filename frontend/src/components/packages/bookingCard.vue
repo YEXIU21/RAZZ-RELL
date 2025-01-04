@@ -1,7 +1,7 @@
 <template>
   <div class="package-card">
     <div class="package-image">
-      <img :src="package.image || '/default-package.jpg'" :alt="package.name">
+      <img :src="package.image ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${package.image}` : '/src/assets/images/default-package.jpg'" :alt="package.name">
       <div class="package-badge" :class="package.eventType.toLowerCase()">
         {{ package.eventType }}
       </div>

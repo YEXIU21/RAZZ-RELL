@@ -20,7 +20,7 @@
           <div class="profile-picture-section">
             <div class="profile-picture-container">
               <img 
-                :src="values.avatar?.startsWith('images/') ? `/src/assets/${values.avatar}` : `http://127.0.0.1:8000/storage/${values.avatar}`" 
+                :src="values.avatar ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${values.avatar}` : '/src/assets/images/DefaultProfile/defaultAvatar.png'" 
                 alt="Profile Picture"
                 class="profile-picture"
               />
@@ -416,14 +416,19 @@ const uploadImage = async () => {
   formData.append('id', values.value.id);
 
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/change-avatar', formData, {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/change-avatar`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
       },
     });
 
-    localStorage.setItem('user_info', JSON.stringify(response.data.data));
-    window.location.reload();
+    if (response.data.status === 200) {
+      const userData = response.data.data;
+      userData.avatar_url = response.data.avatar_url;
+      localStorage.setItem('user_info', JSON.stringify(userData));
+      window.location.reload();
+    }
   } catch (error) {
     console.error("Error uploading the image:", error);
     alert("There was an error uploading the image.");

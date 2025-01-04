@@ -33,7 +33,7 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),
-            'url' => env('VITE_STORAGE_URL', env('APP_URL')).'/storage',
+            'url' => env('VITE_STORAGE_URL', env('APP_URL')).'/api/storage',
             'visibility' => 'public',
             'throw' => false,
         ],
@@ -41,7 +41,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('VITE_STORAGE_URL', env('APP_URL')).'/api/storage',
             'visibility' => 'public',
             'throw' => false,
         ],

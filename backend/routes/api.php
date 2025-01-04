@@ -152,7 +152,7 @@ Route::get('/test-db', function () {
 });
 
 // Storage routes for direct access
-Route::get('storage/{path}', [StorageController::class, 'getFile'])->where('path', '.*');
-Route::post('storage/{folder}', [StorageController::class, 'uploadFile']);
+Route::get('/storage/{path}', [StorageController::class, 'getFile'])->where('path', '.*');
+Route::post('/storage/{folder}', [StorageController::class, 'uploadFile'])->where('folder', '.*');
 
 

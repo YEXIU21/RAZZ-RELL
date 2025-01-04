@@ -51,7 +51,9 @@
               <p class="upload-hint">Supports: JPG, PNG, WebP (Max 5MB)</p>
             </div>
             <div v-else class="preview-container">
-              <img :src="imagePreview" alt="Preview" class="image-preview" />
+              <img :src="imagePreview ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${imagePreview}` : '/src/assets/images/default-portfolio.jpg'" 
+                alt="Preview" 
+                class="image-preview" />
               <div class="preview-overlay">
                 <div class="preview-actions">
                   <button type="button" @click="handleEditImage" class="action-btn">
@@ -184,7 +186,7 @@ const handleImageUpload = (event) => {
   reader.readAsDataURL(file);
 };
 
-const handleAlbumImagesUpload = (event) => {
+const handleAlbumImagesUpload = async (event) => {
   const files = Array.from(event.target.files || []);
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   const maxSize = 5 * 1024 * 1024; // 5MB
@@ -210,20 +212,65 @@ const handleAlbumImagesUpload = (event) => {
     return;
   }
 
-  formData.albumImages.push(...validFiles);
+  // Upload each valid file
+  for (const file of validFiles) {
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', file);
+      
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          }
+        }
+      );
 
-  validFiles.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      albumPreviews.value.push(e.target.result);
-    };
-    reader.readAsDataURL(file);
-  });
+      if (response.data && response.data.path) {
+        formData.albumImages.push(response.data.path);
+        albumPreviews.value.push(response.data.path);
+      }
+    } catch (error) {
+      console.error('Error uploading album image:', error);
+      Swal.fire({
+        title: 'Error',
+        text: `Failed to upload image: ${file.name}`,
+        icon: 'error'
+      });
+    }
+  }
 };
 
-const removeAlbumImage = (index) => {
-  formData.albumImages.splice(index, 1);
-  albumPreviews.value.splice(index, 1);
+const removeAlbumImage = async (index) => {
+  try {
+    const imagePath = formData.albumImages[index];
+    
+    // Remove from storage if it's a stored image
+    if (imagePath && imagePath.startsWith('portfolios/')) {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/storage/${imagePath}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          }
+        }
+      );
+    }
+
+    // Remove from local state
+    formData.albumImages.splice(index, 1);
+    albumPreviews.value.splice(index, 1);
+  } catch (error) {
+    console.error('Error removing album image:', error);
+    Swal.fire({
+      title: 'Error',
+      text: 'Failed to remove image',
+      icon: 'error'
+    });
+  }
 };
 
 const removeCoverImage = () => {
@@ -272,12 +319,39 @@ const cancelCrop = () => {
 
 const applyCrop = () => {
   const canvas = cropper.value.getCroppedCanvas();
-  imagePreview.value = canvas.toDataURL();
-
-  canvas.toBlob((blob) => {
+  
+  canvas.toBlob(async (blob) => {
     const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
     formData.image = file;
     hasAppliedImage.value = true;
+
+    // Upload the cropped image
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', file);
+      
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          }
+        }
+      );
+
+      if (response.data && response.data.path) {
+        imagePreview.value = response.data.path;
+      }
+    } catch (error) {
+      console.error('Error uploading cropped image:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to upload cropped image',
+        icon: 'error'
+      });
+    }
   }, 'image/jpeg');
 
   showCropper.value = false;
@@ -312,11 +386,12 @@ const handleSubmit = async () => {
     }
 
     const response = await axios.post(
-      'http://127.0.0.1:8000/api/add-portfolio',
+      `${import.meta.env.VITE_API_URL}/api/add-portfolio`,
       formDataToSend,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
       }
     );

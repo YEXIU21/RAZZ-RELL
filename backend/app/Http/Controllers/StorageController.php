@@ -10,13 +10,20 @@ class StorageController extends Controller
 {
     public function getFile($path)
     {
-        $fullPath = $path;
-        
-        if (!Storage::exists($fullPath)) {
-            return response()->json(['message' => 'File not found'], 404);
-        }
+        try {
+            $fullPath = $path;
+            
+            if (!Storage::exists($fullPath)) {
+                return response()->json(['message' => 'File not found'], 404);
+            }
 
-        return Storage::response($fullPath);
+            $file = Storage::get($fullPath);
+            $mimeType = Storage::mimeType($fullPath);
+
+            return response($file, 200)->header('Content-Type', $mimeType);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error retrieving file: ' . $e->getMessage()], 500);
+        }
     }
 
     public function uploadFile(Request $request, $folder)
@@ -27,16 +34,23 @@ class StorageController extends Controller
 
         try {
             $file = $request->file('file');
-            $path = $file->store($folder, 'local');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileName = pathinfo($originalName, PATHINFO_FILENAME);
+            $uniqueName = $fileName . '_' . time() . '.' . $extension;
+            
+            $path = $file->storeAs($folder, $uniqueName, 'local');
 
             if (!$path) {
                 throw new \Exception('Failed to store file');
             }
 
+            $url = env('VITE_STORAGE_URL', env('APP_URL')) . '/api/storage/' . $path;
+
             return response()->json([
                 'message' => 'File uploaded successfully',
                 'path' => $path,
-                'url' => Storage::url($path)
+                'url' => $url
             ]);
         } catch (\Exception $e) {
             return response()->json([
