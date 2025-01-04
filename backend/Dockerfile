@@ -14,7 +14,8 @@ RUN apk add --no-cache \
     oniguruma-dev \
     libxml2-dev \
     postgresql-client \
-    supervisor
+    supervisor \
+    nginx
 
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor \
@@ -22,7 +23,10 @@ RUN mkdir -p /var/log/supervisor \
     && mkdir -p /var/www/html/storage/framework/sessions \
     && mkdir -p /var/www/html/storage/framework/views \
     && mkdir -p /var/www/html/storage/framework/cache \
-    && mkdir -p /var/www/html/storage/app/public
+    && mkdir -p /var/www/html/storage/app/public/images/DefaultProfile \
+    && mkdir -p /var/www/html/storage/app/public/packages \
+    && mkdir -p /var/www/html/storage/app/public/avatars \
+    && mkdir -p /var/www/html/public/storage
 
 # Install PHP extensions
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
@@ -37,15 +41,15 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Remove existing storage link if it exists
-RUN rm -rf public/storage
-
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
+# Copy default avatar
+RUN cp public/images/DefaultProfile/defaultAvatar.png storage/app/public/images/DefaultProfile/
+
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
     && chmod -R 775 /var/log/supervisor \
     && chmod +x start.sh
 

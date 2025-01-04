@@ -1,6 +1,6 @@
 export const config = {
   apiUrl: import.meta.env.VITE_API_URL || 'https://razz-rell.onrender.com',
-  storageUrl: `${import.meta.env.VITE_API_URL || 'https://razz-rell.onrender.com'}/storage`,
+  storageUrl: import.meta.env.VITE_STORAGE_URL || 'https://razz-rell.onrender.com/storage',
   socketUrl: import.meta.env.VITE_SOCKET_URL || 'https://razz-rell.onrender.com',
 };
 
