@@ -20,7 +20,7 @@
           <div class="profile-picture-section">
             <div class="profile-picture-container">
               <img 
-                :src="values.avatar ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${values.avatar}` : '/src/assets/images/DefaultProfile/defaultAvatar.png'" 
+                :src="getAvatarUrl" 
                 alt="Profile Picture"
                 class="profile-picture"
               />
@@ -731,6 +731,14 @@ const takeUserInfo = () => {
     profileImagePreview.value = defaultProfileImage;
   }
 };
+
+const getAvatarUrl = computed(() => {
+  if (!values.value?.avatar) {
+    return '/src/assets/images/DefaultProfile/defaultAvatar.png';
+  }
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
+  return storageUrl + '/api/storage/' + values.value.avatar;
+});
 
 onMounted(async () => {
   takeUserInfo();
