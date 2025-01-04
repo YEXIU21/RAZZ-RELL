@@ -9,14 +9,12 @@ RUN apk add --no-cache \
     unzip \
     git \
     $PHPIZE_DEPS \
-    openssl-dev
-
-# Install MongoDB extension
-RUN pecl install mongodb && \
-    docker-php-ext-enable mongodb
+    openssl-dev \
+    postgresql-libs
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql zip
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo pdo_pgsql pgsql zip
 
 # Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
