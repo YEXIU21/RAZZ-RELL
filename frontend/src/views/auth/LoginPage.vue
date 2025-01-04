@@ -115,31 +115,11 @@ const handleSubmit = async () => {
       remember: values.value.rememberMe,
     });
 
-    if (!result) {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Account Not Found',
-        text: 'This account does not exist. Would you like to register?',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Register Now',
-        cancelButtonText: 'Try Again'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          router.push('/register');
-        }
-      });
+    if (result === false) {
+      return;
     }
   } catch (err) {
-    const errorMessage = err.response?.data?.message || 'Invalid email or password. Please try again.';
-    await Swal.fire({
-      icon: 'error',
-      title: 'Login Failed',
-      text: errorMessage,
-      confirmButtonColor: '#3085d6',
-      confirmButtonText: 'Okay'
-    });
+    console.error('Unexpected error during login:', err);
   }
 };
 </script>
