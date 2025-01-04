@@ -15,6 +15,7 @@ php artisan view:clear
 rm -rf public/storage
 mkdir -p storage/app/public/portfolios
 mkdir -p storage/app/public/portfolio_albums
+mkdir -p storage/app/public/packages
 mkdir -p storage/framework/{sessions,views,cache}
 mkdir -p bootstrap/cache
 
