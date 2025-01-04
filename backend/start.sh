@@ -31,7 +31,7 @@ php artisan db:seed --force
 
 # Remove existing storage link and recreate it
 rm -rf public/storage
-php -r "symlink('/var/www/html/storage/app/public', '/var/www/html/public/storage');"
+php artisan storage:link --force
 
 # Cache configuration and routes
 php artisan config:cache
