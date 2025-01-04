@@ -209,7 +209,8 @@ const rotateRight = () => {
 
 const image = (path) => {
   if (!path) return '/src/assets/images/default-portfolio.jpg';
-  return `${import.meta.env.VITE_STORAGE_URL}/api/storage/${path}`;
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
+  return storageUrl + '/api/storage/' + path;
 };
 
 const zoomIn = () => {
@@ -244,6 +245,22 @@ const applyCrop = () => {
   
   showCropper.value = false;
 };
+
+const getCoverImageUrl = computed(() => {
+  if (!formData.image) {
+    return '/src/assets/images/default-portfolio.jpg';
+  }
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
+  return storageUrl + '/api/storage/' + formData.image;
+});
+
+const getAlbumImageUrl = computed(() => (path) => {
+  if (!path) {
+    return '/src/assets/images/default-portfolio.jpg';
+  }
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
+  return storageUrl + '/api/storage/' + path;
+});
 
 onMounted(() => {
   // Set initial event type
