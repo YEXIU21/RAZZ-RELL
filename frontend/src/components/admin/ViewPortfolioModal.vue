@@ -62,7 +62,7 @@
           <div class="upload-container" :class="{ 'has-image': imagePreview }">
             <div class="preview-container">
               <img 
-                :src="formData.image ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${formData.image}` : '/src/assets/images/default-portfolio.jpg'" 
+                :src="getImageUrl(formData.image)"
                 alt="Preview" 
                 class="image-preview" 
               />
@@ -82,7 +82,7 @@
             <div v-else class="album-grid">
               <div v-for="(preview, index) in images" :key="index" class="album-item">
                 <img 
-                  :src="preview ? `${import.meta.env.VITE_STORAGE_URL}/api/storage/${preview}` : '/src/assets/images/default-portfolio.jpg'"
+                  :src="getImageUrl(preview)"
                   :alt="`Album image ${index + 1}`" 
                 />
               </div>
@@ -260,6 +260,11 @@ const getAlbumImageUrl = computed(() => (path) => {
   }
   const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
   return storageUrl + '/api/storage/' + path;
+});
+
+const getImageUrl = computed(() => (path) => {
+  if (!path) return '/src/assets/images/default-portfolio.jpg';
+  return `${import.meta.env.VITE_STORAGE_URL}/api/storage/${path}`;
 });
 
 onMounted(() => {
