@@ -31,8 +31,11 @@ COPY . .
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
-# Generate application key
-RUN php artisan key:generate
+# Create startup script
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'php artisan key:generate --force' >> /start.sh && \
+    echo 'php artisan serve --host=0.0.0.0 --port=80' >> /start.sh && \
+    chmod +x /start.sh
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
@@ -43,5 +46,5 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Expose port 80
 EXPOSE 80
 
-# Start PHP-FPM and Nginx
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"] 
+# Start using the startup script
+CMD ["/start.sh"] 
