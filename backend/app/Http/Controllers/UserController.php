@@ -90,7 +90,8 @@ class UserController extends Controller
         $user = User::where('email', $credentials['email'])->first();
         if (!$user) {
             return response()->json([
-                'message' => 'This account does not exist. Please register first.',
+                'message' => 'Invalid email or password',
+                'error_type' => 'invalid_credentials',
                 'status' => 401
             ], 401);
         }
@@ -98,6 +99,7 @@ class UserController extends Controller
         if (!auth()->attempt($credentials)) {
             return response()->json([
                 'message' => 'Invalid password. Please try again.',
+                'error_type' => 'invalid_credentials',
                 'status' => 401
             ], 401);
         }

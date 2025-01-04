@@ -38,35 +38,14 @@ export function useAuth() {
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage = error.response?.data?.message || 'An error occurred during login.';
-      const errorType = error.response?.data?.error_type;
 
-      let title = 'Error!';
-      let text = errorMessage;
-      let confirmButtonText = 'Okay';
-
-      if (errorType === 'account_not_found') {
-        title = 'Account Not Found';
-        text = 'This account does not exist. Would you like to register?';
-        confirmButtonText = 'Register Now';
-      } else if (errorType === 'invalid_credentials') {
-        title = 'Invalid Password';
-        text = 'The password you entered is incorrect. Please try again.';
-      }
-
-      const result = await Swal.fire({
+      await Swal.fire({
         icon: 'error',
-        title: title,
-        text: text,
+        title: 'Login Failed',
+        text: errorMessage,
         confirmButtonColor: '#3085d6',
-        confirmButtonText: confirmButtonText,
-        showCancelButton: errorType === 'account_not_found',
-        cancelButtonText: 'Try Again',
-        cancelButtonColor: '#d33'
+        confirmButtonText: 'Try Again'
       });
-
-      if (errorType === 'account_not_found' && result.isConfirmed) {
-        router.push('/register');
-      }
 
       return false;
     }
