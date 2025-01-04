@@ -28,6 +28,12 @@ find bootstrap/cache -type f -exec chmod 664 {} \;
 # Create storage link
 php artisan storage:link
 
+# Ensure storage link exists and is correct
+if [ ! -L "public/storage" ] || [ ! -d "$(readlink -f public/storage)" ]; then
+    rm -rf public/storage
+    php artisan storage:link
+fi
+
 # Clear and cache config for production
 php artisan config:cache
 php artisan route:cache
