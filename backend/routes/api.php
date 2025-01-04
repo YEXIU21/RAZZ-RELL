@@ -15,6 +15,7 @@ use App\Http\Controllers\Global\ChatController as ChatController;
 use App\Http\Controllers\AnalyticsController as AnalyticsController;
 use App\Http\Controllers\ArchivedBookingController as ArchivedBookingController;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Global\StorageController as StorageController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -149,5 +150,9 @@ Route::get('/test-db', function () {
         ], 500);
     }
 });
+
+// Storage routes for direct access
+Route::get('storage/{path}', [StorageController::class, 'getFile'])->where('path', '.*');
+Route::post('storage/{folder}', [StorageController::class, 'uploadFile']);
 
 
