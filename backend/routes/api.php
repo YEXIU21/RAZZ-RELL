@@ -14,6 +14,7 @@ use App\Http\Controllers\Global\MessageController as MessageController;
 use App\Http\Controllers\Global\ChatController as ChatController;
 use App\Http\Controllers\AnalyticsController as AnalyticsController;
 use App\Http\Controllers\ArchivedBookingController as ArchivedBookingController;
+use Illuminate\Support\Facades\DB;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -126,6 +127,22 @@ Route::prefix('bookings')->group(function () {
 
 Route::get('/health', function () {
     return response()->json(['status' => 'healthy'], 200);
+});
+
+// Test database connection
+Route::get('/test-db', function () {
+    try {
+        DB::connection()->getPdo();
+        return response()->json([
+            'message' => 'Database connection successful',
+            'database' => DB::connection()->getDatabaseName()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Database connection failed',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });
 
 
