@@ -204,55 +204,58 @@ const handleAlbumImagesUpload = async (event) => {
 
   const validFiles = files.filter(file => {
     if (!allowedTypes.includes(file.type)) {
+      Swal.fire({
+        title: 'Error',
+        text: `File ${file.name} is not a valid image type. Please use JPEG, PNG, or WebP.`,
+        icon: 'error'
+      });
       return false;
     }
     if (file.size > maxSize) {
-      alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+      Swal.fire({
+        title: 'Error',
+        text: `File ${file.name} is too large. Maximum size is 5MB.`,
+        icon: 'error'
+      });
       return false;
     }
     return true;
   });
 
   if (validFiles.length !== files.length) {
-    alert('Some files were skipped. Please ensure all files are images (JPEG, PNG, or WebP) and under 5MB.');
+    Swal.fire({
+      title: 'Warning',
+      text: 'Some files were skipped. Please ensure all files are images (JPEG, PNG, or WebP) and under 5MB.',
+      icon: 'warning'
+    });
   }
 
   // Check total number of images
   if (formData.albumImages.length + validFiles.length > 10) {
-    alert('Maximum 10 images allowed in the album.');
+    Swal.fire({
+      title: 'Error',
+      text: 'Maximum 10 images allowed in the album.',
+      icon: 'error'
+    });
     return;
   }
 
-  // Upload each valid file
+  // Store files locally first
+  formData.albumImages.push(...validFiles);
+  
+  // Create preview URLs
   for (const file of validFiles) {
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('file', file);
-      
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/storage/portfolios`,
-        formDataToSend,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          }
-        }
-      );
-
-      if (response.data && response.data.path) {
-        formData.albumImages.push(response.data.path);
-        albumPreviews.value.push(response.data.path);
-      }
-    } catch (error) {
-      console.error('Error uploading album image:', error);
-      Swal.fire({
-        title: 'Error',
-        text: `Failed to upload image: ${file.name}`,
-        icon: 'error'
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      albumPreviews.value.push({
+        file,
+        preview: e.target.result
       });
-    }
+    };
+    reader.readAsDataURL(file);
   }
+
+  event.target.value = ''; // Clear the input
 };
 
 const removeAlbumImage = async (index) => {
@@ -413,19 +416,26 @@ const handleSubmit = async () => {
         const albumImageFormData = new FormData();
         albumImageFormData.append('file', image);
         
-        const albumImageResponse = await axios.post(
-          `${import.meta.env.VITE_API_URL}/storage/portfolios`,
-          albumImageFormData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        try {
+          const albumImageResponse = await axios.post(
+            `${import.meta.env.VITE_API_URL}/storage/portfolios`,
+            albumImageFormData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+              }
             }
+          );
+          
+          if (albumImageResponse.data && albumImageResponse.data.path) {
+            albumImagePaths.push(albumImageResponse.data.path);
+          } else {
+            throw new Error(`Failed to upload album image: ${image.name}`);
           }
-        );
-        
-        if (albumImageResponse.data && albumImageResponse.data.path) {
-          albumImagePaths.push(albumImageResponse.data.path);
+        } catch (error) {
+          console.error('Error uploading album image:', error);
+          throw new Error(`Failed to upload album image: ${image.name}`);
         }
       }
     }
