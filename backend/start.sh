@@ -13,6 +13,12 @@ php artisan key:generate --force
 php artisan migrate --force
 php artisan db:seed --force
 
+# Remove existing storage link if it exists
+rm -rf public/storage
+
+# Create storage link
+php artisan storage:link
+
 # Cache configuration and routes
 php artisan config:cache
 php artisan route:cache
