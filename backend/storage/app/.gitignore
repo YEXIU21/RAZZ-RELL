@@ -1,0 +1,13 @@
+*
+!.gitignore
+!images/
+!packages/
+!avatars/
+images/*
+packages/*
+avatars/*
+!images/DefaultProfile/
+!images/.gitkeep
+!packages/.gitkeep
+!avatars/.gitkeep
+!images/DefaultProfile/defaultAvatar.png 

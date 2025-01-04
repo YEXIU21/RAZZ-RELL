@@ -23,10 +23,9 @@ RUN mkdir -p /var/log/supervisor \
     && mkdir -p /var/www/html/storage/framework/sessions \
     && mkdir -p /var/www/html/storage/framework/views \
     && mkdir -p /var/www/html/storage/framework/cache \
-    && mkdir -p /var/www/html/storage/app/public/images/DefaultProfile \
-    && mkdir -p /var/www/html/storage/app/public/packages \
-    && mkdir -p /var/www/html/storage/app/public/avatars \
-    && mkdir -p /var/www/html/public/storage
+    && mkdir -p /var/www/html/storage/app/images/DefaultProfile \
+    && mkdir -p /var/www/html/storage/app/packages \
+    && mkdir -p /var/www/html/storage/app/avatars
 
 # Install PHP extensions
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
@@ -41,12 +40,15 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
+# Copy default avatar
+COPY storage/app/images/DefaultProfile/defaultAvatar.png /var/www/html/storage/app/images/DefaultProfile/
+
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/log/supervisor \
     && chmod +x start.sh
 
