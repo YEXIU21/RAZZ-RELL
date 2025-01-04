@@ -382,33 +382,31 @@ const generateEventTypeColor = (eventType) => {
 };
 
 const { token } = useAuth();
-const emit = defineEmits(['close', 'success']);
+const emit = defineEmits(['close', 'package-added']);
 const currentStep = ref(1);
+const imagePreview = ref(null);
+const fileInput = ref(null);
 
-const formData = ref({
-  name: '',
+const formData = reactive({
   eventType: '',
   customEventType: '',
-  price: '',
-  additional_price_percentage: '',
-  price_per_day: false,
-  price_increase_per_day: '',
+  name: '',
   pack: '',
-  customPack: '',
+  customPack: null,
+  price: '',
+  additional_price_percentage: 0,
+  price_per_day: false,
+  price_increase_per_day: 0,
   description: '',
   inclusions: [''],
   image: null
 });
 
-const imagePreview = ref(null);
-const allPackages = ref([]);
-const allGuests = ref([]);
 const isSubmitting = ref(false);
 const showCropper = ref(false);
 const cropperImage = ref(null);
 const hasAppliedImage = ref(false);
 const cropper = ref(null);
-const fileInput = ref(null);
 
 const nextStep = () => {
   if (validateCurrentStep()) {
@@ -423,7 +421,7 @@ const prevStep = () => {
 const validateCurrentStep = () => {
   switch (currentStep.value) {
     case 1:
-      if (!formData.value.eventType) {
+      if (!formData.eventType) {
         Swal.fire({
           icon: 'error',
           title: 'Required Fields',
@@ -431,7 +429,7 @@ const validateCurrentStep = () => {
         });
         return false;
       }
-      if (formData.value.eventType === 'Other' && !formData.value.customEventType) {
+      if (formData.eventType === 'Other' && !formData.customEventType) {
         Swal.fire({
           icon: 'error',
           title: 'Required Fields',
@@ -441,7 +439,7 @@ const validateCurrentStep = () => {
       }
       return true;
     case 2:
-      if (!formData.value.name || !formData.value.price || !formData.value.pack) {
+      if (!formData.name || !formData.price || !formData.pack) {
         Swal.fire({
           icon: 'error',
           title: 'Required Fields',
@@ -449,7 +447,7 @@ const validateCurrentStep = () => {
         });
         return false;
       }
-      if (formData.value.pack === 'other' && !formData.value.customPack) {
+      if (formData.pack === 'other' && !formData.customPack) {
         Swal.fire({
           icon: 'error',
           title: 'Required Fields',
@@ -459,7 +457,7 @@ const validateCurrentStep = () => {
       }
       return true;
     case 3:
-      if (!formData.value.description || formData.value.inclusions.length === 0) {
+      if (!formData.description || formData.inclusions.length === 0) {
         Swal.fire({
           icon: 'error',
           title: 'Required Fields',
@@ -478,11 +476,11 @@ const formatNumber = (num) => {
 };
 
 const addInclusion = () => {
-  formData.value.inclusions.push('');
+  formData.inclusions.push('');
 };
 
 const removeInclusion = (index) => {
-  formData.value.inclusions = formData.value.inclusions.filter((_, i) => i !== index);
+  formData.inclusions = formData.inclusions.filter((_, i) => i !== index);
 };
 
 const handleImageUpload = (event) => {
@@ -517,16 +515,11 @@ const handleImageUpload = (event) => {
   event.target.value = ''; // Reset the input
 };
 
-const getAllGuessst = async () => {
-  const response = await axios.get('http://127.0.0.1:8000/api/get-all-guest');
-  allGuests.value = response.data;
-};
-
 const handleEventTypeChange = () => {
-  if (formData.value.eventType === 'Other' && !formData.value.customEventType) {
-    formData.value.inclusions = [...defaultInclusions.Other];
-  } else if (formData.value.eventType && formData.value.eventType !== 'Other') {
-    formData.value.inclusions = [...defaultInclusions[formData.value.eventType]];
+  if (formData.eventType === 'Other' && !formData.customEventType) {
+    formData.inclusions = [...defaultInclusions.Other];
+  } else if (formData.eventType && formData.eventType !== 'Other') {
+    formData.inclusions = [...defaultInclusions[formData.eventType]];
   }
 };
 
@@ -559,7 +552,7 @@ const handlePriceInput = (event) => {
   const finalValue = Math.min(Number(numericValue), 999999999999.99);
   
   // Update the form data
-  formData.value.price = finalValue.toString();
+  formData.price = finalValue.toString();
 };
 
 const handlePriceIncreaseInput = (event) => {
@@ -591,100 +584,65 @@ const handlePriceIncreaseInput = (event) => {
   const finalValue = Math.min(Number(numericValue), 999999999999.99);
   
   // Update the form data
-  formData.value.price_increase_per_day = finalValue.toString();
+  formData.price_increase_per_day = finalValue.toString();
 };
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://razz-rell.onrender.com';
 
 const handleSubmit = async () => {
   try {
-    isSubmitting.value = true;
+    const packageData = new FormData();
+    packageData.append('package_name', formData.name);
+    packageData.append('package_type', formData.eventType === 'Other' ? formData.customEventType : formData.eventType);
+    packageData.append('package_description', formData.description);
+    packageData.append('package_price', formData.price);
+    packageData.append('additional_price_percentage', formData.additional_price_percentage);
+    packageData.append('packs', formData.pack === 'other' ? formData.customPack : formData.pack);
+    packageData.append('package_inclusion', JSON.stringify(formData.inclusions));
+    packageData.append('price_per_day', formData.price_per_day ? 1 : 0);
+    packageData.append('price_increase_per_day', formData.price_increase_per_day);
     
-    // Validate required fields
-    if (!formData.value.name || !formData.value.eventType || !formData.value.price || !formData.value.description || !formData.value.pack || !formData.value.inclusions[0]) {
-      throw new Error('Please fill in all required fields');
+    if (formData.image) {
+      packageData.append('package_image', formData.image);
     }
 
-    // Handle custom event type and generate colors
-    const packageType = formData.value.eventType === 'Other' ? formData.value.customEventType : formData.value.eventType;
-    if (!packageType || packageType.trim() === '') {
-      throw new Error('Event type is required');
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      throw new Error('Authentication token not found');
     }
 
-    // Generate colors for custom event types
-    let eventColors = {};
-    if (formData.value.eventType === 'Other') {
-      eventColors = generateEventTypeColor(formData.value.customEventType);
-    }
-
-    // Validate price
-    const price = parseFloat(formData.value.price);
-    if (isNaN(price) || price < 0 || price > 999999999999.99) {
-      throw new Error('Price must be between ₱0 and ₱999,999,999,999.99');
-    }
-
-    // Validate additional price percentage
-    const additionalPricePercentage = parseFloat(formData.value.additional_price_percentage || '0');
-    if (isNaN(additionalPricePercentage) || additionalPricePercentage < 0 || additionalPricePercentage > 100) {
-      throw new Error('Additional price percentage must be between 0% and 100%');
-    }
-
-    // Filter out empty inclusions
-    const filteredInclusions = formData.value.inclusions.filter(inc => inc.trim());
-    if (filteredInclusions.length === 0) {
-      throw new Error('Please add at least one package inclusion');
-    }
-
-    const submitData = new FormData();
-    submitData.append('package_name', formData.value.name.trim());
-    submitData.append('package_type', packageType);
-    submitData.append('package_description', formData.value.description.trim());
-    submitData.append('package_price', price.toString());
-    submitData.append('additional_price_percentage', additionalPricePercentage.toString());
-    submitData.append('price_per_day', formData.value.price_per_day ? '1' : '0');
-    submitData.append('price_increase_per_day', formData.value.price_increase_per_day || '0');
-    
-    // Add color information for custom event types
-    if (formData.value.eventType === 'Other') {
-      submitData.append('event_type_colors', JSON.stringify(eventColors));
-    }
-    
-    // Handle pack value correctly
-    const packValue = formData.value.pack === 'other' ? formData.value.customPack : formData.value.pack;
-    submitData.append('packs', packValue);
-    
-    submitData.append('package_inclusion', JSON.stringify(filteredInclusions));
-    
-    if (formData.value.image) {
-      submitData.append('package_image', formData.value.image);
-    }
-
-    console.log('Submitting package data:', Object.fromEntries(submitData.entries()));
-
-    const response = await axios.post('http://127.0.0.1:8000/api/add-package', submitData, {
+    const response = await axios.post(`${API_URL}/api/add-package`, packageData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+      withCredentials: true
     });
 
     if (response.data.status === 'success') {
       Swal.fire({
         icon: 'success',
-        title: 'Success',
-        text: 'Package added successfully'
+        title: 'Success!',
+        text: 'Package added successfully',
+        timer: 1500,
+        showConfirmButton: false
       });
-      emit('success');
+      emit('package-added');
       emit('close');
-    } else {
-      throw new Error(response.data.message || 'Failed to add package');
     }
   } catch (error) {
     console.error('Error adding package:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+    }
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.message || 'Failed to add package'
+      text: error.response?.data?.message || 'Failed to add package. Please try again.'
     });
-  } finally {
-    isSubmitting.value = false;
   }
 };
 
@@ -703,7 +661,7 @@ const applyCrop = () => {
     
     canvas.toBlob((blob) => {
       if (blob) {
-        formData.value.image = new File([blob], 'package-image.jpg', { 
+        formData.image = new File([blob], 'package-image.jpg', { 
           type: 'image/jpeg',
           lastModified: new Date().getTime()
         });
@@ -726,7 +684,7 @@ const cancelCrop = () => {
   showCropper.value = false;
   cropperImage.value = null;
   if (!imagePreview.value) {
-    formData.value.image = null;
+    formData.image = null;
   }
 };
 
@@ -782,7 +740,7 @@ const handleChangeImage = () => {
 const removeImage = () => {
   imagePreview.value = null;
   cropperImage.value = null;
-  formData.value.image = null;
+  formData.image = null;
   fileInput.value.value = '';
 };
 
