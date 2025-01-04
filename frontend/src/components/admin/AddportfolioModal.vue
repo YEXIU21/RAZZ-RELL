@@ -171,8 +171,11 @@ const getPreviewImageUrl = computed(() => {
   if (!imagePreview.value) {
     return '/src/assets/images/default-portfolio.jpg';
   }
-  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
-  return storageUrl + '/api/storage/' + imagePreview.value;
+  if (imagePreview.value.startsWith('data:')) {
+    return imagePreview.value;
+  }
+  const storageUrl = import.meta.env.VITE_API_URL || '';
+  return `${storageUrl}/storage/${imagePreview.value}`;
 });
 
 const handleImageUpload = (event) => {
@@ -334,6 +337,7 @@ const applyCrop = () => {
       fillColor: '#fff'
     });
     
+    // Store the data URL for immediate preview
     imagePreview.value = canvas.toDataURL('image/jpeg', 0.9);
     
     canvas.toBlob((blob) => {
@@ -398,6 +402,9 @@ const handleSubmit = async () => {
     if (!mainImageResponse.data || !mainImageResponse.data.path) {
       throw new Error('Failed to upload main image');
     }
+
+    // Update the preview with the new path
+    imagePreview.value = mainImageResponse.data.path;
 
     // Then upload album images if any
     const albumImagePaths = [];
