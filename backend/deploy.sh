@@ -11,15 +11,16 @@ php artisan cache:clear
 php artisan route:clear
 php artisan view:clear
 
-# Storage setup - ensure all directories exist with proper permissions
+# Remove existing storage link and directory
 rm -rf public/storage
-mkdir -p storage/app/public/portfolios
-mkdir -p storage/app/public/portfolio_albums
+
+# Create storage directories with proper permissions
 mkdir -p storage/app/public/packages
+mkdir -p storage/app/public/package_albums
 mkdir -p storage/framework/{sessions,views,cache}
 mkdir -p bootstrap/cache
 
-# Set permissions - make sure web server can write to these directories
+# Set permissions recursively
 find storage -type d -exec chmod 775 {} \;
 find storage -type f -exec chmod 664 {} \;
 find bootstrap/cache -type d -exec chmod 775 {} \;
@@ -29,9 +30,11 @@ find bootstrap/cache -type f -exec chmod 664 {} \;
 php artisan storage:link
 
 # Ensure storage link exists and is correct
-if [ ! -L "public/storage" ] || [ ! -d "$(readlink -f public/storage)" ]; then
-    rm -rf public/storage
-    php artisan storage:link
+if [ ! -L "public/storage" ]; then
+    echo "Storage link not created properly, trying alternative method..."
+    cd public
+    ln -sf ../storage/app/public storage
+    cd ..
 fi
 
 # Clear and cache config for production
