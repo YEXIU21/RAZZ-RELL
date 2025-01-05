@@ -268,7 +268,7 @@ const stats = [
   },
   {
     id: 3,
-    value: '15',
+    value: '5',
     suffix: '+',
     label: 'Years Experience',
   },

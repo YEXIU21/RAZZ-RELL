@@ -755,8 +755,8 @@ const getImageUrl = (imagePath) => {
 };
 
 const userAvatar = computed(() => {
-  if (!userInfo.value?.avatar) return '/default-avatar.jpg';
-  return getImageUrl(userInfo.value.avatar);
+  const user = JSON.parse(localStorage.getItem('user_info') || '{}');
+  return getImageUrl(user.avatar || user.profile_picture);
 });
 
 const handleAvatarChange = async (event) => {
@@ -799,18 +799,20 @@ const handleAvatarChange = async (event) => {
 
     if (response.data.status === 'success') {
       // Update the user info in localStorage
-      const updatedUserInfo = {
-        ...userInfo.value,
+      const updatedUser = {
+        ...JSON.parse(localStorage.getItem('user_info')),
         avatar: response.data.avatar
       };
-      localStorage.setItem('user_info', JSON.stringify(updatedUserInfo));
-      userInfo.value = updatedUserInfo;
+      localStorage.setItem('user_info', JSON.stringify(updatedUser));
 
       await Swal.fire({
         icon: 'success',
         title: 'Success',
         text: 'Profile picture updated successfully'
       });
+
+      // Update the preview
+      profileImagePreview.value = getImageUrl(response.data.avatar);
     } else {
       throw new Error(response.data.message || 'Failed to update profile picture');
     }
@@ -847,13 +849,12 @@ const handleSubmit = async () => {
 
     if (response.data.status === 'success') {
       // Update the user info in localStorage
-      const updatedUserInfo = {
-        ...userInfo.value,
+      const updatedUser = {
+        ...JSON.parse(localStorage.getItem('user_info')),
         name: formData.name,
         email: formData.email
       };
-      localStorage.setItem('user_info', JSON.stringify(updatedUserInfo));
-      userInfo.value = updatedUserInfo;
+      localStorage.setItem('user_info', JSON.stringify(updatedUser));
 
       await Swal.fire({
         icon: 'success',
