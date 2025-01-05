@@ -81,7 +81,7 @@ const allGuests = ref([]);
 const isSubmitting = ref(false);
 const hoverRating = ref(0);
 
-const getAllGuessst = async () => {
+const getAllGuests = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-guest`, {
       headers: {
@@ -154,7 +154,7 @@ const getRatingText = computed(() => {
 });
 
 onMounted(() => {
-  getAllGuessst();
+  getAllGuests();
 }); 
 </script>
 
