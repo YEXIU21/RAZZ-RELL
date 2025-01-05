@@ -21,7 +21,7 @@
             <div class="profile-picture-section">
               <div class="profile-picture-container">
                 <img 
-                  :src="values.avatar?.startsWith('images/') ? `/src/assets/${values.avatar}` : `http://127.0.0.1:8000/storage/${values.avatar}`" 
+                  :src="values.avatar?.startsWith('images/') ? `/src/assets/${values.avatar}` : `${import.meta.env.VITE_API_URL}/storage/${values.avatar}`" 
                   alt="Profile Picture"
                   class="profile-picture"
                 />
@@ -446,7 +446,7 @@ const uploadImage = async () => {
     formData.append('avatar', image.value);
     formData.append('id', values.value.id);
 
-    const response = await axios.post('http://127.0.0.1:8000/api/change-avatar', formData, {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/change-avatar`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -591,7 +591,7 @@ const saveChanges = async () => {
 
     // Make the API call
     const response = await axios.post(
-      'http://127.0.0.1:8000/api/update-user-info',
+      `${import.meta.env.VITE_API_URL}/api/update-user-info`,
       formData,
       {
         headers: {
@@ -767,7 +767,7 @@ const takeUserInfo = () => {
   if (user.profile_picture) {
     profileImagePreview.value = user.profile_picture.startsWith('http') 
       ? user.profile_picture 
-      : `http://127.0.0.1:8000/storage/${user.profile_picture}`;
+      : `${import.meta.env.VITE_API_URL}/storage/${user.profile_picture}`;
   } else {
     profileImagePreview.value = defaultProfileImage;
   }

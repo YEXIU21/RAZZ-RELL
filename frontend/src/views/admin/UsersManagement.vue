@@ -278,7 +278,7 @@ const totalPages = computed(() => {
 // Methods
 const fetchUsers = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-all-users');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-users`);
     users.value = response.data;
     if (response.ok) {
       users.value = await response.json();
@@ -357,7 +357,7 @@ const deleteUser = (user) => {
 const confirmBlockAction = async () => {
   try {
     const action = selectedUser.value.status === 'blocked' ? 'unblock' : 'block';
-    const response = await fetch(`http://localhost:3000/api/admin/users/${selectedUser.value.id}/${action}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${selectedUser.value.id}/${action}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token.value}`
@@ -375,7 +375,7 @@ const confirmBlockAction = async () => {
 
 const confirmDeleteUser = async () => {
   try {
-    const response = await axios.post(`http://127.0.0.1:8000/api/delete-user/${selectedUser.value.id}`);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/delete-user/${selectedUser.value.id}`);
 
     if(response.data.status == 200){
       // Show success animation

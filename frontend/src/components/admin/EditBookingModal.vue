@@ -117,6 +117,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useAuth } from '@/composables/useAuth';
 
 const props = defineProps({
   booking: {
@@ -129,6 +130,7 @@ const emit = defineEmits(['close', 'update']);
 const isSubmitting = ref(false);
 const payments = ref([]);
 const totalPaid = ref(0);
+const { token } = useAuth();
 
 const formData = ref({
   status: props.booking.status.toLowerCase(),
@@ -144,16 +146,29 @@ const newPayment = reactive({
 const fetchPayments = async () => {
   try {
     console.log('Fetching payments for booking:', props.booking.id);
-    const response = await axios.get(`http://127.0.0.1:8000/api/bookings/${props.booking.id}/payments`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/bookings/${props.booking.id}/payments`, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    });
     console.log('Payments response:', response.data);
     
-    payments.value = response.data.payments;
-    totalPaid.value = response.data.total_paid;
+    if (response.data.status === 'success') {
+      payments.value = response.data.payments;
+      totalPaid.value = response.data.total_paid;
+    } else {
+      throw new Error(response.data.message || 'Failed to fetch payments');
+    }
   } catch (error) {
     console.error('Error fetching payments:', {
       message: error.message,
       response: error.response?.data,
       status: error.response?.status
+    });
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || error.message || 'Failed to fetch payment history'
     });
   }
 };
@@ -168,28 +183,34 @@ const validatePayment = () => {
     return false;
   }
 
+  if (parseFloat(newPayment.amount) > remainingBalance.value) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid Amount',
+      text: 'Payment amount cannot exceed the remaining balance'
+    });
+    return false;
+  }
+
   return true;
 };
 
 // Add new payment
 const addPayment = async () => {
-  console.log('Submitting payment:', {
-    booking_id: props.booking.id,
-    amount: newPayment.amount,
-    notes: newPayment.notes
-  });
-  
   if (!validatePayment()) return;
 
   isSubmitting.value = true;
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/payments', {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/payments`, {
       booking_id: props.booking.id,
       amount: parseFloat(newPayment.amount),
       notes: newPayment.notes
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
+      }
     });
-
-    console.log('Payment response:', response.data);
 
     if (response.data.status === 'success') {
       newPayment.amount = '';
@@ -197,11 +218,13 @@ const addPayment = async () => {
       await fetchPayments();
       emit('update');
 
-      Swal.fire({
+      await Swal.fire({
         icon: 'success',
         title: 'Payment Added',
         text: 'Payment has been recorded successfully'
       });
+    } else {
+      throw new Error(response.data.message || 'Failed to record payment');
     }
   } catch (error) {
     console.error('Payment error details:', {
@@ -210,10 +233,10 @@ const addPayment = async () => {
       status: error.response?.status
     });
 
-    Swal.fire({
+    await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.response?.data?.message || 'Failed to record payment'
+      text: error.response?.data?.message || error.message || 'Failed to record payment'
     });
   } finally {
     isSubmitting.value = false;
@@ -250,35 +273,53 @@ const handleSubmit = async () => {
     isSubmitting.value = true;
 
     // Only process payment if amount is entered and not exceeding remaining balance
-    if (newPayment.amount && parseFloat(newPayment.amount) > 0 && parseFloat(newPayment.amount) <= remainingBalance.value) {
-      await axios.post('http://127.0.0.1:8000/api/payments', {
+    if (newPayment.amount && parseFloat(newPayment.amount) > 0) {
+      if (!validatePayment()) {
+        isSubmitting.value = false;
+        return;
+      }
+
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/payments`, {
         booking_id: props.booking.id,
         amount: parseFloat(newPayment.amount),
         notes: newPayment.notes || 'Payment recorded during status update'
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token.value}`,
+          'Content-Type': 'application/json'
+        }
       });
     }
 
-    const response = await axios.post('http://127.0.0.1:8000/api/update-booking', {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/update-booking`, {
       id: props.booking.id,
       status: formData.value.status,
       cancellationMessage: formData.value.status === 'cancelled' ? formData.value.cancellationMessage : null
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
+      }
     });
     
     if (response.data.status === 200) {
-      Swal.fire({
+      await fetchPayments(); // Refresh payments after successful update
+      await Swal.fire({
         icon: 'success',
         title: 'Success',
         text: 'Booking updated successfully'
       });
       emit('update');
       emit('close');
+    } else {
+      throw new Error(response.data.message || 'Failed to update booking');
     }
   } catch (error) {
     console.error('Error updating booking:', error);
-    Swal.fire({
+    await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to update booking'
+      text: error.response?.data?.message || error.message || 'Failed to update booking'
     });
   } finally {
     isSubmitting.value = false;

@@ -234,21 +234,39 @@ const totalPages = computed(() => {
 const fetchBookings = async () => {
   try {
     const userInfo = JSON.parse(localStorage.getItem('user_info'));
-    const response = await axios.get(`http://127.0.0.1:8000/api/bookings/user/${userInfo.id}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/bookings/user/${userInfo.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    });
     bookings.value = response.data.bookings;
-    console.log(bookings.value);
+    console.log('Bookings fetched:', bookings.value);
   } catch (error) {
     console.error('Error fetching bookings:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to fetch bookings. Please try again.'
+    });
   }
 };
 
 const fetchRatings = async () => {
   try {
     const userInfo = JSON.parse(localStorage.getItem('user_info'));
-    const response = await axios.get(`http://127.0.0.1:8000/api/get-all-ratings/${userInfo.id}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-ratings/${userInfo.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    });
     ratings.value = response.data.ratings;
   } catch (error) {
     console.error('Error fetching ratings:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to fetch ratings. Please try again.'
+    });
   }
 };
 
@@ -390,7 +408,7 @@ const confirmCancelBooking = async () => {
     // If user confirms and provides reason
     if (formValues) {
       const response = await axios.post(
-        `http://127.0.0.1:8000/api/update-booking`,
+        `${import.meta.env.VITE_API_URL}/api/update-booking`,
         {
           id: selectedBooking.value.id,
           status: 'cancelled',
@@ -400,13 +418,13 @@ const confirmCancelBooking = async () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token.value}`
+            'Authorization': `Bearer ${token.value}`
           }
         }
       );
 
       if (response.status === 200) {
-        Swal.fire({
+        await Swal.fire({
           icon: 'success',
           title: 'Booking Cancelled',
           html: `
@@ -426,7 +444,7 @@ const confirmCancelBooking = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to cancel booking. Please try again.'
+      text: error.response?.data?.message || 'Failed to cancel booking. Please try again.'
     });
   }
 };

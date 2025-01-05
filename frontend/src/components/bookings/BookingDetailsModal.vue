@@ -312,7 +312,7 @@ const submitFeedbackAndCancel = async () => {
 
   try {
     // First submit the feedback
-    await axios.post('http://127.0.0.1:8000/api/booking-feedback', {
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/booking-feedback`, {
       booking_id: props.booking.id,
       satisfaction_rating: satisfaction.value,
       cancellation_reason: cancellationReason.value === 'other' ? otherReason.value : cancellationReason.value,
@@ -321,7 +321,7 @@ const submitFeedbackAndCancel = async () => {
 
     // Then cancel the booking with the reason
     const response = await axios.post(
-      `http://127.0.0.1:8000/api/update-booking`,
+      `${import.meta.env.VITE_API_URL}/api/update-booking`,
       {
         id: props.booking.id,
         status: 'cancelled',

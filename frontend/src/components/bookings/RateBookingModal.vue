@@ -82,8 +82,21 @@ const isSubmitting = ref(false);
 const hoverRating = ref(0);
 
 const getAllGuessst = async () => {
-  const response = await axios.get('http://127.0.0.1:8000/api/get-all-guest');
-  allGuests.value = response.data;
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-guest`, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    });
+    allGuests.value = response.data;
+  } catch (error) {
+    console.error('Error fetching guests:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to fetch guest information'
+    });
+  }
 };
 
 const handleSubmit = async () => {
@@ -96,7 +109,7 @@ const handleSubmit = async () => {
     formDataToSend.append('user_id', formData.user_id);
     formDataToSend.append('booking_id', formData.booking_id);
 
-    const response = await axios.post('http://127.0.0.1:8000/api/add-rating', formDataToSend, {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/add-rating`, formDataToSend, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': `Bearer ${token.value}`
@@ -106,20 +119,23 @@ const handleSubmit = async () => {
     if(response.status === 200){
       emit('rating-added', response.data.package);
       
-      Swal.fire({
+      await Swal.fire({
         title: 'Success',
         text: response.data.message,
         icon: 'success'
-      }).then(() => {
-        emit('close');
       });
-    }else{
-      alert(response.data.message || 'Failed to add rating. Please try again.');
+      emit('close');
+    } else {
+      throw new Error(response.data.message || 'Failed to add rating. Please try again.');
     }
     
   } catch (error) {
     console.error('Error adding rating:', error);
-    alert(error.message || 'Failed to add rating. Please try again.');
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || error.message || 'Failed to add rating. Please try again.'
+    });
   } finally {
     isSubmitting.value = false;
   }

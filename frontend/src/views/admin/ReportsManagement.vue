@@ -304,7 +304,7 @@ const formatCurrency = (value) => {
 // Fetch monthly revenue data
 const fetchMonthlyRevenue = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-monthly-revenue');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-monthly-revenue`);
     const monthlyRevenue = response.data.monthlyRevenue || [];
     revenueData.value.datasets[0].data = monthlyRevenue.map(value => {
       const numValue = Number(value);
@@ -326,7 +326,7 @@ const fetchMonthlyRevenue = async () => {
 
 const fetchRevenueData = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-revenue-overview');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-revenue-overview`);
     stats.value = {
       ...stats.value,
       totalRevenue: response.data.totalRevenue,
@@ -349,7 +349,7 @@ const fetchRevenueData = async () => {
 
 const fetchBookingsData = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-bookings-by-event-type');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-bookings-by-event-type`);
     stats.value = {
       ...stats.value,
       totalBookings: response.data.totalBookings,
@@ -375,12 +375,12 @@ const fetchBookingsData = async () => {
 const fetchCustomerAnalytics = async () => {
   try {
     // Fetch active users
-    const usersResponse = await axios.get('http://127.0.0.1:8000/api/get-active-users');
+    const usersResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-active-users`);
     activeUsersCount.value = usersResponse.data.active_users_count;
     userTrend.value = usersResponse.data.trend;
 
     // Fetch satisfaction data
-    const satisfactionResponse = await axios.get('http://127.0.0.1:8000/api/get-ratings');
+    const satisfactionResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-ratings`);
     console.log('Satisfaction Response:', satisfactionResponse.data); // Debug log
     
     // Update the reactive refs
@@ -398,7 +398,7 @@ const fetchCustomerAnalytics = async () => {
 // Update the fetchPopularPackages function
 const fetchPopularPackages = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-popular-packages');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-popular-packages`);
     popularPackages.value = response.data.popular_packages || []; // Ensure it's always an array
   } catch (error) {
     console.error('Error fetching popular packages:', error);

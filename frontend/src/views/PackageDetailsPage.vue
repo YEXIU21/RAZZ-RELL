@@ -86,7 +86,7 @@
                     :src="review.user_avatar" 
                     :alt="review.user_name" 
                     class="user-avatar"
-                    @error="$event.target.src = 'http://127.0.0.1:8000/storage/avatars/defaultAvatar.png'"
+                    @error="$event.target.src = `${import.meta.env.VITE_API_URL}/storage/avatars/defaultAvatar.png`"
                   >
                   <div class="review-meta">
                     <h4>{{ review.user_name }}</h4>
@@ -138,6 +138,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import RateBookingModal from '@/components/bookings/RateBookingModal.vue';
+import Swal from 'sweetalert2';
 
 const route = useRoute();
 const router = useRouter();
@@ -206,16 +207,27 @@ const formatNumber = (num) => {
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return '/default-package.jpg';
-  return `http://127.0.0.1:8000/storage/${imagePath}`;
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('images/')) return `/src/assets/${imagePath}`;
+  return `${import.meta.env.VITE_API_URL}/storage/${imagePath}`;
 };
 
 const fetchPackageDetails = async () => {
   try {
     isLoading.value = true;
-    const response = await axios.get(`http://127.0.0.1:8000/api/get-package-by-id/${route.params.id}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-package-by-id/${route.params.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    });
     
     // Check if package is inactive
     if (response.data.status?.toLowerCase() !== 'active') {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Package Unavailable',
+        text: 'This package is currently not available.'
+      });
       router.push('/packages');
       return;
     }
@@ -224,6 +236,11 @@ const fetchPackageDetails = async () => {
     console.log('Package data:', response.data);
   } catch (error) {
     console.error('Error fetching package details:', error);
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || 'Failed to fetch package details'
+    });
     router.push('/packages');
   } finally {
     isLoading.value = false;
@@ -242,7 +259,11 @@ const goBack = () => {
 
 const fetchReviews = async () => {
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/api/package-reviews/${route.params.id}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/package-reviews/${route.params.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    });
     packageReviews.value = response.data.reviews;
     ratingDistribution.value = response.data.distribution;
     totalReviews.value = response.data.total;
@@ -254,6 +275,11 @@ const fetchReviews = async () => {
     }
   } catch (error) {
     console.error('Error fetching reviews:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to fetch package reviews'
+    });
   }
 };
 
@@ -275,16 +301,25 @@ const formatDate = (date) => {
 };
 
 const handleRatingAdded = async (updatedPackage) => {
-  // Update the package data
-  packageData.value = {
-    ...packageData.value,
-    rating: updatedPackage.rating,
-    reviews_count: updatedPackage.reviews_count
-  };
-  
-  // Refresh the reviews
-  await fetchReviews();
-  showRateModal.value = false;
+  try {
+    // Update the package data
+    packageData.value = {
+      ...packageData.value,
+      rating: updatedPackage.rating,
+      reviews_count: updatedPackage.reviews_count
+    };
+    
+    // Refresh the reviews
+    await fetchReviews();
+    showRateModal.value = false;
+  } catch (error) {
+    console.error('Error updating package rating:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to update package rating'
+    });
+  }
 };
 
 onMounted(() => {

@@ -218,68 +218,43 @@ const handleImageUpload = (event) => {
 };
 
 const handleSubmit = async () => {
-
   try {
+    isSubmitting.value = true;
 
-    const data = {...formData};
-
-    const response = await axios.post(`http://127.0.0.1:8000/api/update-user-info`, data, {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/update-user`, {
+      id: props.user.id,
+      name: formData.firstName + ' ' + formData.lastName,
+      email: formData.email,
+      role: formData.role,
+      status: formData.status
+    }, {
       headers: {
-        Authorization: `Bearer ${token.value}`
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
       }
     });
-    
-    if(response.status === 200) {
-      Swal.fire({
-        title: 'Success',
-        text: response.data.message,
-        icon: 'success'
-      }).then(() => {
-        window.location.reload();
-      });
-      
-    } else {
-      throw new Error('Failed to update user');
-    }
 
+    if (response.data.status === 'success') {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'User updated successfully'
+      });
+      emit('update');
+      emit('close');
+    } else {
+      throw new Error(response.data.message || 'Failed to update user');
+    }
   } catch (error) {
     console.error('Error updating user:', error);
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || error.message || 'Failed to update user'
+    });
+  } finally {
+    isSubmitting.value = false;
   }
-
-  // if (passwordError.value) return;
-
-  // try {
-  //   isSubmitting.value = true;
-
-  //   const formDataToSend = new FormData();
-  //   Object.keys(formData).forEach(key => {
-  //     if (key === 'avatar' && formData[key] instanceof File) {
-  //       formDataToSend.append(key, formData[key]);
-  //     } else if (key === 'password' && !formData[key]) {
-  //       // Skip empty password
-  //     } else if (key !== 'confirmPassword') {
-  //       formDataToSend.append(key, formData[key]);
-  //     }
-  //   });
-
-  //   const response = await fetch(`http://localhost:3000/api/admin/users/${props.user.id}`, {
-  //     method: 'PUT',
-  //     headers: {
-  //       Authorization: `Bearer ${token.value}`
-  //     },
-  //     body: formDataToSend
-  //   });
-
-  //   if (response.ok) {
-  //     emit('update');
-  //   } else {
-  //     throw new Error('Failed to update user');
-  //   }
-  // } catch (error) {
-  //   console.error('Error updating user:', error);
-  // } finally {
-  //   isSubmitting.value = false;
-  // }
 };
 </script>
 

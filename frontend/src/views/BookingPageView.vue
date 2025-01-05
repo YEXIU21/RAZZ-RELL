@@ -1434,7 +1434,7 @@ const canProceedToNextStep = computed(() => {
 const getBookingById = async () => {
   try {
     const response = await axios.get(
-      `http://127.0.0.1:8000/api/get-package-by-id/${route.params.id}`
+      `${import.meta.env.VITE_API_URL}/api/get-package-by-id/${route.params.id}`
     );
 
     // Set the packs from the package
@@ -1643,7 +1643,7 @@ const handleSubmit = async (event) => {
     }
 
     const response = await axios.post(
-      "http://127.0.0.1:8000/api/add-booking",
+      `${import.meta.env.VITE_API_URL}/api/add-booking`,
       submitFormData,
       {
         headers: {

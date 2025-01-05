@@ -206,7 +206,7 @@ const formatDate = (date) => {
 // Fetch monthly revenue data
 const fetchMonthlyRevenue = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-monthly-revenue');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-monthly-revenue`);
     if (response.data.success) {
       revenueData.datasets[0].data = response.data.data;
       if (revenueChart) {
@@ -223,7 +223,7 @@ let eventTypeChart = null;
 
 const fetchBookings = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-all-bookings');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-bookings`);
     
     // Get today and yesterday dates
     const today = new Date();
@@ -309,7 +309,7 @@ const fetchBookings = async () => {
 
 const fetchUser = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-all-users', {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-users`, {
       headers: {
         Authorization: `Bearer ${token.value}`
       }
@@ -351,7 +351,7 @@ const fetchUser = async () => {
 
 const fetchSatisfactionRate = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/get-all-ratings');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-ratings`);
     
     if (response.data) {
       const ratings = response.data;

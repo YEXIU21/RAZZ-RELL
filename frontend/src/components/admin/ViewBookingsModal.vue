@@ -215,7 +215,7 @@
 
   const fetchBooking = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/get-booking-by-id/${props.booking.id}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-booking-by-id/${props.booking.id}`);
       console.log('Booking data:', response.data);
       
       bookings.value = {
@@ -270,13 +270,25 @@
 
   const fetchPayments = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/bookings/${props.booking.id}/payments`);
-      payments.value = response.data.payments || [];
-      totalPaid.value = response.data.total_paid || 0;
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/bookings/${props.booking.id}/payments`, {
+        headers: {
+          'Authorization': `Bearer ${token.value}`
+        }
+      });
+      
+      if (response.data.status === 'success') {
+        payments.value = response.data.payments;
+        totalPaid.value = response.data.total_paid;
+      } else {
+        throw new Error(response.data.message || 'Failed to fetch payments');
+      }
     } catch (error) {
       console.error('Error fetching payments:', error);
-      payments.value = [];
-      totalPaid.value = 0;
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || error.message || 'Failed to fetch payment history'
+      });
     }
   };
 
@@ -318,7 +330,7 @@
         console.log('Sending cancellation request with reason:', formValues.reason);
 
         const response = await axios.post(
-          `http://127.0.0.1:8000/api/update-booking`,
+          `${import.meta.env.VITE_API_URL}/api/update-booking`,
           {
             id: props.booking.id,
             status: 'cancelled',

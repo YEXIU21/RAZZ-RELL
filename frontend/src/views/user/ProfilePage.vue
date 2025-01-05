@@ -550,7 +550,7 @@ const saveChanges = async () => {
 
     // Make the API call
     const response = await axios.post(
-      'http://127.0.0.1:8000/api/update-user-info',
+      `${import.meta.env.VITE_API_URL}/api/update-user-info`,
       formData,
       {
         headers: {
@@ -726,7 +726,7 @@ const takeUserInfo = () => {
   if (user.profile_picture) {
     profileImagePreview.value = user.profile_picture.startsWith('http') 
       ? user.profile_picture 
-      : `http://127.0.0.1:8000/storage/${user.profile_picture}`;
+      : `${import.meta.env.VITE_API_URL}/storage/${user.profile_picture}`;
   } else {
     profileImagePreview.value = defaultProfileImage;
   }
@@ -734,11 +734,151 @@ const takeUserInfo = () => {
 
 const getAvatarUrl = computed(() => {
   if (!values.value?.avatar) {
-    return '/src/assets/images/DefaultProfile/defaultAvatar.png';
+    return '/src/assets/DefaultProfile/defaultAvatar.png';
   }
-  const storageUrl = import.meta.env.VITE_STORAGE_URL || '';
-  return storageUrl + '/api/storage/' + values.value.avatar;
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || import.meta.env.VITE_API_URL;
+  return `${storageUrl}/storage/${values.value.avatar}`;
 });
+
+const avatarUrl = computed(() => {
+  if (user.value?.profile_picture) {
+    return `${import.meta.env.VITE_API_URL}/storage/${user.value.profile_picture}`;
+  }
+  return null;
+});
+
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return '/default-avatar.jpg';
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('images/')) return `/src/assets/${imagePath}`;
+  return `${import.meta.env.VITE_API_URL}/storage/${imagePath}`;
+};
+
+const userAvatar = computed(() => {
+  if (!userInfo.value?.avatar) return '/default-avatar.jpg';
+  return getImageUrl(userInfo.value.avatar);
+});
+
+const handleAvatarChange = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Invalid File Type',
+      text: 'Please upload a valid image file (JPEG, PNG, or GIF)'
+    });
+    return;
+  }
+
+  // Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+  if (file.size > maxSize) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'File Too Large',
+      text: 'Please upload an image smaller than 5MB'
+    });
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/change-avatar`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    if (response.data.status === 'success') {
+      // Update the user info in localStorage
+      const updatedUserInfo = {
+        ...userInfo.value,
+        avatar: response.data.avatar
+      };
+      localStorage.setItem('user_info', JSON.stringify(updatedUserInfo));
+      userInfo.value = updatedUserInfo;
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Profile picture updated successfully'
+      });
+    } else {
+      throw new Error(response.data.message || 'Failed to update profile picture');
+    }
+  } catch (error) {
+    console.error('Error updating avatar:', error);
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || error.message || 'Failed to update profile picture'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const handleSubmit = async () => {
+  if (!validateForm()) return;
+
+  try {
+    isSubmitting.value = true;
+
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/update-profile`, {
+      name: formData.name,
+      email: formData.email,
+      current_password: formData.current_password,
+      new_password: formData.new_password,
+      new_password_confirmation: formData.new_password_confirmation
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.status === 'success') {
+      // Update the user info in localStorage
+      const updatedUserInfo = {
+        ...userInfo.value,
+        name: formData.name,
+        email: formData.email
+      };
+      localStorage.setItem('user_info', JSON.stringify(updatedUserInfo));
+      userInfo.value = updatedUserInfo;
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Profile updated successfully'
+      });
+
+      // Clear password fields
+      formData.current_password = '';
+      formData.new_password = '';
+      formData.new_password_confirmation = '';
+    } else {
+      throw new Error(response.data.message || 'Failed to update profile');
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || error.message || 'Failed to update profile'
+    });
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 
 onMounted(async () => {
   takeUserInfo();

@@ -114,12 +114,17 @@ const userMenu = ref(null);
 const isAdmin = computed(() => localStorage.getItem('user_role') === 'admin' || localStorage.getItem('user_role') === 'staff');
 const userInfo = computed(() => JSON.parse(localStorage.getItem('user_info')));
 
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return '/default-avatar.jpg';
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('images/')) return `/src/assets/${imagePath}`;
+  return `${import.meta.env.VITE_API_URL}/storage/${imagePath}`;
+};
+
 const userAvatar = computed(() => {
   const storedUser = userInfo.value;
-  if (!storedUser?.avatar) return 'portfolios/defaultAvatar.png';
-  if (storedUser.avatar.startsWith('images/')) return `/src/assets/${storedUser.avatar}`;
-  if (storedUser.avatar.startsWith('http')) return storedUser.avatar;
-  return `http://127.0.0.1:8000/storage/${storedUser.avatar}`;
+  if (!storedUser?.avatar) return '/default-avatar.jpg';
+  return getImageUrl(storedUser.avatar);
 });
 
 const userDisplayName = computed(() => {

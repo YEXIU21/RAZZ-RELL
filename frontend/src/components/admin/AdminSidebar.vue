@@ -29,8 +29,9 @@
     <div class="sidebar-footer">
       <div class="user-info">
         <img 
-          :src="user?.avatar?.startsWith('images/') ? `/src/assets/${user.avatar}` : `http://127.0.0.1:8000/storage/${user.avatar}`" 
-          alt="User" 
+          :src="userAvatar" 
+          alt="User Avatar" 
+          class="user-avatar"
         />
         <div>
           <p class="user-name" style="text-transform: capitalize;"> {{ user?.last_name }}, {{ user?.first_name }}</p>
@@ -39,6 +40,7 @@
       </div>
       <button @click="handleLogout" class="logout-btn">
         <i class="fas fa-sign-out-alt"></i>
+        
         Logout
       </button>
     </div>
@@ -182,6 +184,18 @@ const fetchBookings = async () => {
 onMounted(async () => {
   await fetchBookings();
   setInterval(fetchBookings, 60000); // Refresh every minute
+});
+
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return '/default-avatar.jpg';
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('images/')) return `/src/assets/${imagePath}`;
+  return `${import.meta.env.VITE_API_URL}/storage/${imagePath}`;
+};
+
+const userAvatar = computed(() => {
+  if (!user.value?.avatar) return '/default-avatar.jpg';
+  return getImageUrl(user.value.avatar);
 });
 </script>
 

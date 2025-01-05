@@ -354,7 +354,7 @@ const handleSubmit = async () => {
     }
 
     const response = await axios.post(
-      'http://127.0.0.1:8000/api/update-package',
+      `${import.meta.env.VITE_API_URL}/api/update-package`,
       formDataToSend,
       {
         headers: {
@@ -416,7 +416,7 @@ const handleEditImage = async () => {
 
     if (formData.previewImage) {
       const response = await axios.get(
-        `http://127.0.0.1:8000/storage/${formData.previewImage}`,
+        `${import.meta.env.VITE_API_URL}/storage/${formData.previewImage}`,
         {
           responseType: 'arraybuffer',
           headers: {
@@ -557,7 +557,7 @@ const handleChangeImage = () => {
 // Computed property for current image URL
 const currentImageUrl = computed(() => {
   if (imagePreview.value) return imagePreview.value;
-  if (formData.previewImage) return `http://127.0.0.1:8000/storage/${formData.previewImage}`;
+  if (formData.previewImage) return `${import.meta.env.VITE_API_URL}/storage/${formData.previewImage}`;
   return null;
 });
 

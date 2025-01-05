@@ -135,7 +135,7 @@ export default {
     });
 
     const fetchportfolios = async () => {
-      const response = await axios.get(`http://127.0.0.1:8000/api/get-all-portfolios`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-portfolios`);
       portfolios.value = response.data;
     };
 
@@ -177,7 +177,7 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await axios.post(`http://127.0.0.1:8000/api/delete-portfolio/${pkg}`);
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/delete-portfolio/${pkg}`);
             if(response.status === 200){
               await fetchportfolios();
               Swal.fire('Deleted!', 'Portfolio has been deleted.', 'success');
@@ -194,7 +194,7 @@ export default {
 
     const confirmDeleteportfolio = async () => {
       try {
-        const response = await axios.post(`http://127.0.0.1:8000/api/delete-portfolio/${selectedportfolio.value.id}`);
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/delete-portfolio/${selectedportfolio.value.id}`);
         if(response.status === 200){
           Swal.fire({
             title: 'Success',
@@ -230,11 +230,11 @@ export default {
     const defaultImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNFNUU3RUIiLz48cGF0aCBkPSJNODAgOTBIMTIwVjExMEg4MFY5MFoiIGZpbGw9IiM5Q0EzQUYiLz48cGF0aCBkPSJNNjUgNjBIMTM1VjgwSDY1VjYwWiIgZmlsbD0iIzlDQTNBRiIvPjwvc3ZnPg==';
 
     const getImageUrl = (imagePath) => {
-      if (imagePath) {
-        return `http://127.0.0.1:8000/storage/${imagePath}`;
-      } else {
+      if (!imagePath) {
         return defaultImageUrl;
       }
+      const storageUrl = import.meta.env.VITE_STORAGE_URL || import.meta.env.VITE_API_URL;
+      return `${storageUrl}/storage/${imagePath}`;
     };
 
     onMounted(async () => {

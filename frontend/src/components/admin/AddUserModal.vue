@@ -151,7 +151,7 @@ import { useAuth } from '@/composables/useAuth';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-const emit = defineEmits(['close', 'success']);
+const emit = defineEmits(['close', 'update']);
 const { token } = useAuth();
 
 const isSubmitting = ref(false);
@@ -186,13 +186,71 @@ watch([() => formData.password, () => formData.confirmPassword], ([password, con
   }
 });
 
+const validateForm = () => {
+  if (!formData.firstName.trim()) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Error',
+      text: 'Please enter a first name'
+    });
+    return false;
+  }
+
+  if (!formData.lastName.trim()) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Error',
+      text: 'Please enter a last name'
+    });
+    return false;
+  }
+
+  if (!formData.email.trim()) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Error',
+      text: 'Please enter an email address'
+    });
+    return false;
+  }
+
+  if (!formData.phone.trim()) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Error',
+      text: 'Please enter a phone number'
+    });
+    return false;
+  }
+
+  if (!formData.password) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Error',
+      text: 'Please enter a password'
+    });
+    return false;
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Error',
+      text: 'Passwords do not match'
+    });
+    return false;
+  }
+
+  return true;
+};
+
 const handleSubmit = async () => {
-  if (passwordError.value) return;
+  if (!validateForm()) return;
 
   try {
     isSubmitting.value = true;
 
-    const data = {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/add-user`, {
       first_name: formData.firstName,
       last_name: formData.lastName,
       email: formData.email,
@@ -200,32 +258,31 @@ const handleSubmit = async () => {
       role: formData.role,
       status: formData.status,
       password: formData.password,
-    };
-
-    const response = await axios.post('http://127.0.0.1:8000/api/add-user', data, {
+      password_confirmation: formData.confirmPassword
+    }, {
       headers: {
-        Authorization: `Bearer ${token.value}`
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
       }
     });
 
-    if (response.status === 200) {
+    if (response.data.status === 'success') {
       await Swal.fire({
+        icon: 'success',
         title: 'Success',
-        text: 'User created successfully',
-        icon: 'success'
+        text: 'User added successfully'
       });
-      emit('success');
+      emit('update');
       emit('close');
     } else {
-      throw new Error('Failed to create user');
+      throw new Error(response.data.message || 'Failed to add user');
     }
-
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Error adding user:', error);
     await Swal.fire({
+      icon: 'error',
       title: 'Error',
-      text: error.response?.data?.message || 'Failed to create user',
-      icon: 'error'
+      text: error.response?.data?.message || error.message || 'Failed to add user'
     });
   } finally {
     isSubmitting.value = false;

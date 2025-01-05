@@ -131,7 +131,7 @@ export default {
     const fetchPackages = async () => {
       try {
         isLoading.value = true;
-        const response = await axios.get('http://127.0.0.1:8000/api/get-all-packages');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/get-all-packages`);
         
         packages.value = response.data.map(pkg => ({
           _id: pkg.id,
@@ -139,7 +139,7 @@ export default {
           description: pkg.package_description,
           price: pkg.package_price ? parseFloat(pkg.package_price) : 0,
           eventType: pkg.package_type,
-          image: pkg.package_image ? `http://127.0.0.1:8000/storage/${pkg.package_image}` : null,
+          image: pkg.package_image ? `${import.meta.env.VITE_API_URL}/storage/${pkg.package_image}` : null,
           inclusions: pkg.package_inclusion ? JSON.parse(pkg.package_inclusion) : [],
           status: pkg.status,
           rating: pkg.rating || 0,
