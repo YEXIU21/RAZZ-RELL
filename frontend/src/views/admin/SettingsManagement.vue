@@ -21,7 +21,7 @@
             <div class="profile-picture-section">
               <div class="profile-picture-container">
                 <img 
-                  :src="values.avatar?.startsWith('images/') ? `/src/assets/${values.avatar}` : `${import.meta.env.VITE_API_URL}/storage/${values.avatar}`" 
+                  :src="values.avatar ? (values.avatar.startsWith('images/') ? `/src/assets/${values.avatar}` : `${import.meta.env.VITE_API_URL}/storage/${values.avatar}`) : ''"
                   alt="Profile Picture"
                   class="profile-picture"
                 />
