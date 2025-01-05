@@ -21,7 +21,7 @@
             <div class="profile-picture-section">
               <div class="profile-picture-container">
                 <img 
-                  :src="values.avatar ? (values.avatar.startsWith('images/') ? `/src/assets/${values.avatar}` : `${import.meta.env.VITE_API_URL}/storage/${values.avatar}`) : ''"
+                  :src="avatarSrc"
                   alt="Profile Picture"
                   class="profile-picture"
                 />
@@ -389,6 +389,13 @@ const profileImagePreview = ref(null);
 const profileImageFile = ref(null);
 const image = ref(null);
 const imagePreview = ref(null);
+
+const avatarSrc = computed(() => {
+  if (!values.value.avatar) return '';
+  return values.value.avatar.startsWith('images/') 
+    ? `/src/assets/${values.value.avatar}`
+    : `${import.meta.env.VITE_API_URL}/storage/${values.value.avatar}`;
+});
 
 const handleImageUpload = async (event) => {
   const file = event.target.files[0];
