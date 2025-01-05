@@ -86,7 +86,7 @@
                     :src="review.user_avatar" 
                     :alt="review.user_name" 
                     class="user-avatar"
-                    @error="$event.target.src = `${import.meta.env.VITE_API_URL}/storage/avatars/defaultAvatar.png`"
+                    @error="$event.target.src = defaultAvatarUrl"
                   >
                   <div class="review-meta">
                     <h4>{{ review.user_name }}</h4>
@@ -149,6 +149,8 @@ const ratingDistribution = ref({});
 const totalReviews = ref(0);
 const showRateModal = ref(false);
 const selectedBooking = ref(null);
+
+const defaultAvatarUrl = computed(() => `${import.meta.env.VITE_API_URL}/storage/avatars/defaultAvatar.png`);
 
 // Predefined color pairs for common package types
 const predefinedColors = {
