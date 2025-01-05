@@ -14,6 +14,7 @@ use App\Http\Controllers\Global\MessageController as MessageController;
 use App\Http\Controllers\Global\ChatController as ChatController;
 use App\Http\Controllers\AnalyticsController as AnalyticsController;
 use App\Http\Controllers\ArchivedBookingController as ArchivedBookingController;
+use App\Http\Controllers\Global\StatisticsController as StatisticsController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Global\StorageController as StorageController;
 /*
@@ -123,6 +124,7 @@ Route::get('/get-revenue-overview', [AnalyticsController::class, 'getRevenueOver
 Route::get('/get-bookings-by-event-type', [AnalyticsController::class, 'getBookingsByEventType']);
 Route::get('/get-monthly-revenue', [AnalyticsController::class, 'getMonthlyRevenue']);
 Route::get('/get-popular-packages', [AnalyticsController::class, 'getPopularPackages']);
+Route::get('/about-us/stats', [StatisticsController::class, 'getAboutUsStats']);
 
 // Archived Bookings
 Route::prefix('bookings')->group(function () {
